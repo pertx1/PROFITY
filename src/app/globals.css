@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f5f7;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --foreground: #1d1d1f;
+  --secondary: #6e6e73;
+  --accent: #0071e3;
+  --accent-foreground: #ffffff;
+  --danger: #ff3b30;
+  --success: #1f9d55;
+  --warning: #ff9f0a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --surface: #1c1c1e;
+    --surface-raised: #2c2c2e;
+    --border: rgba(255, 255, 255, 0.1);
+    --foreground: #f5f5f7;
+    --secondary: #98989d;
+    --accent: #2997ff;
+    --accent-foreground: #ffffff;
+    --danger: #ff453a;
+    --success: #32d74b;
+    --warning: #ffd60a;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--border);
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Oculta las flechas del input number para un look más limpio */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

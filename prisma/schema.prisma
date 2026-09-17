@@ -1,0 +1,67 @@
+// PROFITY — gastos, pedidos y beneficio de tu negocio.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  expenses Expense[]
+  orders   Order[]
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          DateTime
+  category      String
+  concept       String?
+  amount        Float
+  paymentMethod String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, category])
+}
+
+enum OrderStatus {
+  SIN_HACER
+  EN_CASA
+  EN_PAQUETE
+  ENVIADO
+  SIN_LLEGAR
+  CANCELADO
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderNumber Int?
+  date        DateTime    @default(now())
+  quantity    Int         @default(1)
+  model       String
+  color       String?
+  size        String?
+  price       Float
+  status      OrderStatus @default(SIN_HACER)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, model])
+  @@index([userId, status])
+}

@@ -1,0 +1,290 @@
+"use client";
+
+import { useActionState, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { FieldGroup, Input, Select } from "@/components/ui/Field";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { IconEdit, IconPlus } from "@/components/nav/icons";
+import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
+import { orderStatusMeta, orderStatusValues, type OrderStatus } from "@/lib/order-status";
+import { deleteOrderAction, saveOrderAction, type OrderFormState } from "./actions";
+
+type Order = {
+  id: string;
+  date: Date;
+  orderNumber: number | null;
+  quantity: number;
+  model: string;
+  color: string | null;
+  size: string | null;
+  price: number;
+  status: OrderStatus;
+};
+
+const emptyState: OrderFormState = {};
+
+export function OrdersView({
+  orders,
+  models,
+  colors,
+  sizes,
+}: {
+  orders: Order[];
+  models: string[];
+  colors: string[];
+  sizes: string[];
+}) {
+  const [editing, setEditing] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "TODOS">(
+    "TODOS",
+  );
+  const [state, formAction, isPending] = useActionState(
+    saveOrderAction,
+    emptyState,
+  );
+  const submittedRef = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (submittedRef.current && !isPending) {
+      submittedRef.current = false;
+      if (!state.error) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setEditing(null);
+        formRef.current?.reset();
+      }
+    }
+  }, [state, isPending]);
+
+  const today = toDateInputValue(new Date());
+  const formKey = editing?.id ?? "new";
+  const visibleOrders =
+    statusFilter === "TODOS"
+      ? orders
+      : orders.filter((o) => o.status === statusFilter);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Card className="p-5">
+        <h2 className="text-base font-semibold">
+          {editing ? "Editar pedido" : "Nuevo pedido"}
+        </h2>
+        <form
+          ref={formRef}
+          action={formAction}
+          onSubmit={() => {
+            submittedRef.current = true;
+          }}
+          className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          <input type="hidden" name="id" value={editing?.id ?? ""} />
+
+          <FieldGroup label="Fecha" htmlFor="date">
+            <Input
+              id="date"
+              name="date"
+              type="date"
+              defaultValue={editing ? toDateInputValue(editing.date) : today}
+              key={`${formKey}-date`}
+              max={today}
+              required
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Nº pedido" htmlFor="orderNumber">
+            <Input
+              id="orderNumber"
+              name="orderNumber"
+              type="number"
+              defaultValue={editing?.orderNumber ?? ""}
+              key={`${formKey}-orderNumber`}
+              placeholder="Opcional"
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Modelo" htmlFor="model">
+            <Input
+              id="model"
+              name="model"
+              list="model-options"
+              defaultValue={editing?.model ?? ""}
+              key={`${formKey}-model`}
+              required
+            />
+            <datalist id="model-options">
+              {models.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+          </FieldGroup>
+
+          <FieldGroup label="Color" htmlFor="color">
+            <Input
+              id="color"
+              name="color"
+              list="color-options"
+              defaultValue={editing?.color ?? ""}
+              key={`${formKey}-color`}
+              placeholder="Opcional"
+            />
+            <datalist id="color-options">
+              {colors.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </FieldGroup>
+
+          <FieldGroup label="Talla" htmlFor="size">
+            <Input
+              id="size"
+              name="size"
+              list="size-options"
+              defaultValue={editing?.size ?? ""}
+              key={`${formKey}-size`}
+              placeholder="Opcional"
+            />
+            <datalist id="size-options">
+              {sizes.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          </FieldGroup>
+
+          <FieldGroup label="Cantidad" htmlFor="quantity">
+            <Input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="1"
+              defaultValue={editing?.quantity ?? 1}
+              key={`${formKey}-quantity`}
+              required
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Precio (€)" htmlFor="price">
+            <Input
+              id="price"
+              name="price"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={editing?.price ?? ""}
+              key={`${formKey}-price`}
+              required
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Estado" htmlFor="status">
+            <Select
+              id="status"
+              name="status"
+              defaultValue={editing?.status ?? "SIN_HACER"}
+              key={`${formKey}-status`}
+            >
+              {orderStatusValues.map((s) => (
+                <option key={s} value={s}>
+                  {orderStatusMeta[s].label}
+                </option>
+              ))}
+            </Select>
+          </FieldGroup>
+
+          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
+            {state.error && (
+              <p className="mr-auto self-center text-sm text-danger">
+                {state.error}
+              </p>
+            )}
+            {editing && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setEditing(null);
+                  formRef.current?.reset();
+                }}
+              >
+                Cancelar
+              </Button>
+            )}
+            <Button type="submit" disabled={isPending}>
+              <IconPlus className="h-4 w-4" />
+              {isPending ? "Guardando…" : editing ? "Guardar cambios" : "Añadir pedido"}
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      <div className="flex flex-wrap gap-2">
+        {(["TODOS", ...orderStatusValues] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStatusFilter(s)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              statusFilter === s
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-border text-secondary hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            }`}
+          >
+            {s === "TODOS" ? "Todos" : orderStatusMeta[s].label}
+          </button>
+        ))}
+      </div>
+
+      <Card className="overflow-hidden">
+        {visibleOrders.length === 0 ? (
+          <p className="py-10 text-center text-sm text-secondary">
+            No hay pedidos que coincidan.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {visibleOrders.map((order) => (
+              <li
+                key={order.id}
+                className="flex items-center justify-between gap-3 px-5 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {order.model}
+                    {order.color ? ` · ${order.color}` : ""}
+                    {order.size ? ` · ${order.size}` : ""}
+                    {order.quantity > 1 ? ` · x${order.quantity}` : ""}
+                  </p>
+                  <p className="flex items-center gap-2 text-xs text-secondary">
+                    {formatDate(order.date)}
+                    {order.orderNumber ? ` · #${order.orderNumber}` : ""}
+                    <StatusBadge status={order.status} />
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="mr-2 text-sm font-semibold text-success">
+                    +{formatCurrency(order.price)}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Editar"
+                    onClick={() => {
+                      setEditing(order);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-secondary transition-colors hover:bg-accent/10 hover:text-accent"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </button>
+                  <form action={deleteOrderAction}>
+                    <input type="hidden" name="id" value={order.id} />
+                    <DeleteButton confirmMessage="¿Eliminar este pedido?" />
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </div>
+  );
+}
