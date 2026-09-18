@@ -176,12 +176,10 @@ export async function parseOrdersFile(buffer: ArrayBuffer) {
   for (const sheet of sheets) {
     const headerMap = buildHeaderMap(sheet);
 
-    const orderNumberCol = findColumn(headerMap, [
-      "npedido",
-      "nopedido",
-      "numeropedido",
-      "pedido",
-    ]);
+    // La columna del número/nombre de pedido es siempre la primera
+    // (columna A) de la hoja, sea cual sea el texto exacto de su
+    // cabecera ("Nº Pedido", "Nº/Nombre Pedido", etc.).
+    const orderNumberCol = 1;
     const quantityCol = findColumn(headerMap, ["cantidad"]);
     const modelCol = findColumn(headerMap, ["modelo"]);
     const colorCol = findColumn(headerMap, ["color"]);
@@ -190,7 +188,7 @@ export async function parseOrdersFile(buffer: ArrayBuffer) {
     const statusCol = findColumn(headerMap, ["estado"]);
     const dateCol = findColumn(headerMap, ["fecha"]);
 
-    if (!orderNumberCol && !modelCol && !priceCol) {
+    if (!modelCol && !priceCol) {
       // esta hoja no parece de pedidos, la saltamos entera
       continue;
     }
@@ -202,12 +200,8 @@ export async function parseOrdersFile(buffer: ArrayBuffer) {
 
     sheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
-      const orderNumber = orderNumberCol
-        ? cellText(row.getCell(orderNumberCol).value)
-        : null;
-      const orderNumberAsNumber = orderNumberCol
-        ? cellNumber(row.getCell(orderNumberCol).value)
-        : null;
+      const orderNumber = cellText(row.getCell(orderNumberCol).value);
+      const orderNumberAsNumber = cellNumber(row.getCell(orderNumberCol).value);
       const model = modelCol ? cellText(row.getCell(modelCol).value) : null;
       const color = colorCol ? cellText(row.getCell(colorCol).value) : null;
       const size = sizeCol ? cellText(row.getCell(sizeCol).value) : null;
