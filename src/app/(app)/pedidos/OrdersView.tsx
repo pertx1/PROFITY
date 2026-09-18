@@ -6,10 +6,16 @@ import { Card } from "@/components/ui/Card";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { FieldGroup, Input, Select } from "@/components/ui/Field";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { IconEdit, IconPlus } from "@/components/nav/icons";
+import { ImportButton } from "@/components/ui/ImportButton";
+import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
 import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
 import { orderStatusMeta, orderStatusValues, type OrderStatus } from "@/lib/order-status";
-import { deleteOrderAction, saveOrderAction, type OrderFormState } from "./actions";
+import {
+  deleteOrderAction,
+  importOrdersAction,
+  saveOrderAction,
+  type OrderFormState,
+} from "./actions";
 
 type Order = {
   id: string;
@@ -40,6 +46,7 @@ export function OrdersView({
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "TODOS">(
     "TODOS",
   );
+  const [query, setQuery] = useState("");
   const [state, formAction, isPending] = useActionState(
     saveOrderAction,
     emptyState,
@@ -60,17 +67,24 @@ export function OrdersView({
 
   const today = toDateInputValue(new Date());
   const formKey = editing?.id ?? "new";
-  const visibleOrders =
-    statusFilter === "TODOS"
-      ? orders
-      : orders.filter((o) => o.status === statusFilter);
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleOrders = orders.filter((order) => {
+    if (statusFilter !== "TODOS" && order.status !== statusFilter) return false;
+    if (!normalizedQuery) return true;
+    return [order.model, order.color, order.size, order.orderNumber?.toString()]
+      .filter(Boolean)
+      .some((value) => value!.toString().toLowerCase().includes(normalizedQuery));
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-base font-semibold">
-          {editing ? "Editar pedido" : "Nuevo pedido"}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold">
+            {editing ? "Editar pedido" : "Nuevo pedido"}
+          </h2>
+          <ImportButton action={importOrdersAction} label="Importar pedidos" />
+        </div>
         <form
           ref={formRef}
           action={formAction}
@@ -218,6 +232,17 @@ export function OrdersView({
         </form>
       </Card>
 
+      <div className="relative">
+        <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+        <Input
+          type="search"
+          placeholder="Buscar por modelo, color, talla o nº de pedido…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {(["TODOS", ...orderStatusValues] as const).map((s) => (
           <button
@@ -236,9 +261,13 @@ export function OrdersView({
       </div>
 
       <Card className="overflow-hidden">
-        {visibleOrders.length === 0 ? (
+        {orders.length === 0 ? (
           <p className="py-10 text-center text-sm text-secondary">
-            No hay pedidos que coincidan.
+            Todavía no has registrado ningún pedido.
+          </p>
+        ) : visibleOrders.length === 0 ? (
+          <p className="py-10 text-center text-sm text-secondary">
+            Ningún pedido coincide con los filtros.
           </p>
         ) : (
           <ul className="divide-y divide-border">

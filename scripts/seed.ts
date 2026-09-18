@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { prisma } from "../src/lib/prisma";
 import { hashPassword } from "../src/lib/password";
-import { orderStatusValues } from "../src/lib/validation";
+import { normalizeOrderStatus } from "../src/lib/order-status";
 
 type SeedExpense = {
   date: string;
@@ -22,13 +22,6 @@ type SeedOrder = {
   price: number;
   status: string | null;
 };
-
-function normalizeStatus(raw: string | null) {
-  const key = (raw ?? "").trim().toUpperCase().replace(/\s+/g, "_");
-  return (orderStatusValues as readonly string[]).includes(key)
-    ? (key as (typeof orderStatusValues)[number])
-    : "SIN_HACER";
-}
 
 async function main() {
   const email = process.env.SEED_EMAIL ?? "mnysoon@gmail.com";
@@ -109,7 +102,7 @@ async function main() {
         color: p.color,
         size: p.size,
         price: p.price,
-        status: normalizeStatus(p.status),
+        status: normalizeOrderStatus(p.status),
       };
     }),
   });

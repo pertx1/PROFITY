@@ -14,4 +14,11 @@ export const orderStatusMeta: Record<
   CANCELADO: { label: "Cancelado", dot: "bg-danger" },
 };
 
+export function normalizeOrderStatus(raw: string | null | undefined): OrderStatus {
+  const key = (raw ?? "").trim().toUpperCase().replace(/\s+/g, "_");
+  return (orderStatusValues as readonly string[]).includes(key)
+    ? (key as OrderStatus)
+    : "SIN_HACER";
+}
+
 export { orderStatusValues };

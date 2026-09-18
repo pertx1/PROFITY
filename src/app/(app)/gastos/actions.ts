@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { expenseSchema } from "@/lib/validation";
+import { parseExpensesFile } from "@/lib/import";
 
 export type ExpenseFormState = { error?: string };
+export type ImportState = { error?: string; imported?: number; skipped?: number };
 
 function revalidateAfterChange() {
   revalidatePath("/gastos");
@@ -65,4 +67,48 @@ export async function deleteExpenseAction(formData: FormData) {
 
   await prisma.expense.delete({ where: { id } });
   revalidateAfterChange();
+}
+
+export async function importExpensesAction(
+  _prevState: ImportState,
+  formData: FormData,
+): Promise<ImportState> {
+  const { userId } = await requireUser();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Elige primero un archivo Excel (.xlsx)" };
+  }
+
+  let rows;
+  let skipped;
+  try {
+    const buffer = await file.arrayBuffer();
+    ({ rows, skipped } = await parseExpensesFile(buffer));
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "No se pudo leer el archivo",
+    };
+  }
+
+  if (rows.length === 0) {
+    return { error: "No he encontrado ninguna fila válida en el archivo" };
+  }
+
+  await prisma.expense.createMany({
+    data: rows.map((row) => ({
+      userId,
+      date: row.date,
+      category: row.category,
+      concept: row.concept,
+      amount: row.amount,
+      paymentMethod: row.paymentMethod,
+    })),
+  });
+
+  revalidateAfterChange();
+  return { imported: rows.length, skipped };
 }

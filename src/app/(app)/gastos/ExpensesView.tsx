@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { FieldGroup, Input } from "@/components/ui/Field";
-import { IconEdit, IconPlus } from "@/components/nav/icons";
+import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
+import { ImportButton } from "@/components/ui/ImportButton";
 import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
-import { deleteExpenseAction, saveExpenseAction, type ExpenseFormState } from "./actions";
+import {
+  deleteExpenseAction,
+  importExpensesAction,
+  saveExpenseAction,
+  type ExpenseFormState,
+} from "./actions";
 
 type Expense = {
   id: string;
@@ -30,6 +36,7 @@ export function ExpensesView({
   paymentMethods: string[];
 }) {
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [query, setQuery] = useState("");
   const [state, formAction, isPending] = useActionState(
     saveExpenseAction,
     emptyState,
@@ -49,13 +56,24 @@ export function ExpensesView({
   }, [state, isPending]);
 
   const today = toDateInputValue(new Date());
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleExpenses = normalizedQuery
+    ? expenses.filter((expense) =>
+        [expense.category, expense.concept, expense.paymentMethod]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(normalizedQuery)),
+      )
+    : expenses;
 
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-5">
-        <h2 className="text-base font-semibold">
-          {editing ? "Editar gasto" : "Nuevo gasto"}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold">
+            {editing ? "Editar gasto" : "Nuevo gasto"}
+          </h2>
+          <ImportButton action={importExpensesAction} label="Importar gastos" />
+        </div>
         <form
           ref={formRef}
           action={formAction}
@@ -162,14 +180,29 @@ export function ExpensesView({
         </form>
       </Card>
 
+      <div className="relative">
+        <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+        <Input
+          type="search"
+          placeholder="Buscar por categoría, concepto o método de pago…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <Card className="overflow-hidden">
         {expenses.length === 0 ? (
           <p className="py-10 text-center text-sm text-secondary">
             Todavía no has registrado ningún gasto.
           </p>
+        ) : visibleExpenses.length === 0 ? (
+          <p className="py-10 text-center text-sm text-secondary">
+            Ningún gasto coincide con &quot;{query}&quot;.
+          </p>
         ) : (
           <ul className="divide-y divide-border">
-            {expenses.map((expense) => (
+            {visibleExpenses.map((expense) => (
               <li
                 key={expense.id}
                 className="flex items-center justify-between gap-3 px-5 py-3"

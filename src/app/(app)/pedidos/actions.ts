@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { orderSchema } from "@/lib/validation";
+import { parseOrdersFile } from "@/lib/import";
 
 export type OrderFormState = { error?: string };
+export type ImportState = { error?: string; imported?: number; skipped?: number };
 
 function revalidateAfterChange() {
   revalidatePath("/pedidos");
@@ -72,4 +74,88 @@ export async function deleteOrderAction(formData: FormData) {
 
   await prisma.order.delete({ where: { id } });
   revalidateAfterChange();
+}
+
+export async function importOrdersAction(
+  _prevState: ImportState,
+  formData: FormData,
+): Promise<ImportState> {
+  const { userId } = await requireUser();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Elige primero un archivo Excel (.xlsx)" };
+  }
+
+  let rows;
+  let skipped;
+  try {
+    const buffer = await file.arrayBuffer();
+    ({ rows, skipped } = await parseOrdersFile(buffer));
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "No se pudo leer el archivo",
+    };
+  }
+
+  if (rows.length === 0) {
+    return { error: "No he encontrado ninguna fila válida en el archivo" };
+  }
+
+  // Si el Excel no trae una fecha por pedido (lo habitual), repartimos las
+  // fechas de forma proporcional dentro del rango de fechas de tus gastos,
+  // en el orden del número de pedido, para que el gráfico de evolución
+  // tenga sentido.
+  const hasAnyDate = rows.some((row) => row.date !== null);
+  let fallbackRange: { min: number; max: number } | null = null;
+  if (!hasAnyDate) {
+    const range = await prisma.expense.aggregate({
+      where: { userId },
+      _min: { date: true },
+      _max: { date: true },
+    });
+    if (range._min.date && range._max.date) {
+      fallbackRange = {
+        min: range._min.date.getTime(),
+        max: range._max.date.getTime(),
+      };
+    }
+  }
+
+  const ordered = hasAnyDate
+    ? rows
+    : [...rows].sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0));
+
+  await prisma.order.createMany({
+    data: ordered.map((row, index) => {
+      let date: Date;
+      if (row.date) {
+        date = row.date;
+      } else if (fallbackRange) {
+        const t = ordered.length > 1 ? index / (ordered.length - 1) : 0;
+        date = new Date(
+          fallbackRange.min + t * (fallbackRange.max - fallbackRange.min),
+        );
+      } else {
+        date = new Date();
+      }
+      return {
+        userId,
+        date,
+        orderNumber: row.orderNumber,
+        quantity: row.quantity,
+        model: row.model,
+        color: row.color,
+        size: row.size,
+        price: row.price,
+        status: row.status,
+      };
+    }),
+  });
+
+  revalidateAfterChange();
+  return { imported: rows.length, skipped };
 }
