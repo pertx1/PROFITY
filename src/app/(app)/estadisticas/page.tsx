@@ -12,7 +12,7 @@ import { resolveRange } from "@/lib/date-range";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RangeSelector } from "@/components/ui/RangeSelector";
-import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
+import { TrendAreaChart } from "@/components/charts/TrendAreaChart";
 import { RankedBarChart } from "@/components/charts/RankedBarChart";
 import { formatDate } from "@/lib/format";
 import type { OrderStatus } from "@/lib/order-status";
@@ -54,12 +54,43 @@ export default async function EstadisticasPage({
         {formatDate(range.start)} – {formatDate(range.end)}
       </p>
 
-      <Card className="p-5">
-        <h2 className="text-base font-semibold">Ingresos vs. gastos</h2>
-        <div className="mt-2">
-          <MonthlyBarChart data={series} />
-        </div>
-      </Card>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="p-5">
+          <h2 className="text-base font-semibold">Gastos</h2>
+          <div className="mt-2">
+            <TrendAreaChart
+              data={series}
+              series={[{ key: "gastos", name: "Gastos", colorKey: "gastos" }]}
+              height={200}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-base font-semibold">Beneficio</h2>
+          <div className="mt-2">
+            <TrendAreaChart
+              data={series}
+              series={[{ key: "beneficio", name: "Beneficio", colorKey: "beneficio" }]}
+              height={200}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-base font-semibold">Ingresos vs. gastos</h2>
+          <div className="mt-2">
+            <TrendAreaChart
+              data={series}
+              series={[
+                { key: "ingresos", name: "Ingresos", colorKey: "ingresos" },
+                { key: "gastos", name: "Gastos", colorKey: "gastos" },
+              ]}
+              height={200}
+            />
+          </div>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="p-5">

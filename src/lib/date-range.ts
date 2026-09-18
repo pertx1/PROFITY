@@ -113,7 +113,13 @@ function bucketLabel(date: Date, granularity: Granularity): string {
   }
 }
 
-export type SeriesBucket = { key: string; label: string; gastos: number; ingresos: number };
+export type SeriesBucket = {
+  key: string;
+  label: string;
+  gastos: number;
+  ingresos: number;
+  beneficio: number;
+};
 
 export function buildBuckets(start: Date, end: Date): {
   granularity: Granularity;
@@ -132,7 +138,13 @@ export function buildBuckets(start: Date, end: Date): {
   while (cursor.getTime() <= last.getTime() && guard < 500) {
     const key = cursor.toISOString();
     bucketIndex.set(key, buckets.length);
-    buckets.push({ key, label: bucketLabel(cursor, granularity), gastos: 0, ingresos: 0 });
+    buckets.push({
+      key,
+      label: bucketLabel(cursor, granularity),
+      gastos: 0,
+      ingresos: 0,
+      beneficio: 0,
+    });
     cursor = bucketStep(cursor, granularity);
     guard += 1;
   }

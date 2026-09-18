@@ -8,6 +8,7 @@ export const chartColors = {
     baseline: "#c3c2b7",
     ingresos: "#2a78d6",
     gastos: "#e34948",
+    beneficio: "#1f9d55",
   },
   dark: {
     surface: "#1a1a19",
@@ -18,6 +19,7 @@ export const chartColors = {
     baseline: "#383835",
     ingresos: "#3987e5",
     gastos: "#e66767",
+    beneficio: "#32d74b",
   },
 } as const;
 

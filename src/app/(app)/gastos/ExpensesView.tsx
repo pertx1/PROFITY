@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { DeleteAllButton } from "@/components/ui/DeleteAllButton";
-import { FieldGroup, Input } from "@/components/ui/Field";
+import { FieldGroup, Input, Select } from "@/components/ui/Field";
 import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
 import { ImportButton } from "@/components/ui/ImportButton";
 import { cn } from "@/lib/cn";
@@ -42,6 +42,7 @@ export function ExpensesView({
 }) {
   const [editing, setEditing] = useState<Expense | null>(null);
   const [query, setQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"date" | "az" | "za">("date");
   const [state, formAction, isPending] = useActionState(
     saveExpenseAction,
     emptyState,
@@ -62,13 +63,21 @@ export function ExpensesView({
 
   const today = toDateInputValue(new Date());
   const normalizedQuery = query.trim().toLowerCase();
-  const visibleExpenses = normalizedQuery
+  const filteredExpenses = normalizedQuery
     ? expenses.filter((expense) =>
         [expense.category, expense.concept, expense.paymentMethod]
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(normalizedQuery)),
       )
     : expenses;
+  const visibleExpenses =
+    sortOrder === "date"
+      ? filteredExpenses
+      : [...filteredExpenses].sort((a, b) =>
+          sortOrder === "az"
+            ? a.category.localeCompare(b.category, "es")
+            : b.category.localeCompare(a.category, "es"),
+        );
 
   return (
     <div className="flex flex-col gap-6">
@@ -193,15 +202,26 @@ export function ExpensesView({
         </form>
       </Card>
 
-      <div className="relative">
-        <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
-        <Input
-          type="search"
-          placeholder="Buscar por categoría, concepto o método de pago…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[240px]">
+          <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+          <Input
+            type="search"
+            placeholder="Buscar por categoría, concepto o método de pago…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
+          className="w-auto"
+        >
+          <option value="date">Más recientes</option>
+          <option value="az">Categoría A → Z</option>
+          <option value="za">Categoría Z → A</option>
+        </Select>
       </div>
 
       <Card className="overflow-hidden">

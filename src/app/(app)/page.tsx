@@ -5,7 +5,7 @@ import { getFinancialSummary, getMonthlySeries, getRecentActivity } from "@/lib/
 import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
-import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
+import { TrendAreaChart } from "@/components/charts/TrendAreaChart";
 import { IconScale, IconTrendDown, IconTrendUp } from "@/components/nav/icons";
 import { formatCurrency, formatDate, formatOrderRef } from "@/lib/format";
 
@@ -56,7 +56,13 @@ export default async function DashboardPage() {
       <Card className="p-5">
         <h2 className="text-base font-semibold">Últimos 6 meses</h2>
         <div className="mt-2">
-          <MonthlyBarChart data={series} />
+          <TrendAreaChart
+            data={series}
+            series={[
+              { key: "ingresos", name: "Ingresos", colorKey: "ingresos" },
+              { key: "gastos", name: "Gastos", colorKey: "gastos" },
+            ]}
+          />
         </div>
       </Card>
 

@@ -80,8 +80,13 @@ export async function getMonthlySeries(userId: string, months = 6) {
     }),
   ]);
 
-  const buckets: { key: string; label: string; gastos: number; ingresos: number }[] =
-    [];
+  const buckets: {
+    key: string;
+    label: string;
+    gastos: number;
+    ingresos: number;
+    beneficio: number;
+  }[] = [];
   const bucketIndex = new Map<string, number>();
 
   for (let i = 0; i < months; i += 1) {
@@ -94,6 +99,7 @@ export async function getMonthlySeries(userId: string, months = 6) {
       label: d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" }),
       gastos: 0,
       ingresos: 0,
+      beneficio: 0,
     });
   }
 
@@ -106,6 +112,9 @@ export async function getMonthlySeries(userId: string, months = 6) {
     const key = `${o.date.getFullYear()}-${o.date.getMonth()}`;
     const idx = bucketIndex.get(key);
     if (idx !== undefined) buckets[idx].ingresos += o.price;
+  }
+  for (const b of buckets) {
+    b.beneficio = b.ingresos - b.gastos;
   }
 
   return buckets;
@@ -136,6 +145,9 @@ export async function getSeriesForRange(userId: string, start: Date, end: Date) 
   for (const o of orders) {
     const idx = bucketIndex.get(bucketOf(o.date));
     if (idx !== undefined) buckets[idx].ingresos += o.price;
+  }
+  for (const b of buckets) {
+    b.beneficio = b.ingresos - b.gastos;
   }
 
   return buckets;
