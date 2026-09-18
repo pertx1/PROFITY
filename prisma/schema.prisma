@@ -19,6 +19,7 @@ model User {
 
   expenses Expense[]
   orders   Order[]
+  incomes  Income[]
 }
 
 model Expense {
@@ -35,6 +36,22 @@ model Expense {
 
   @@index([userId, date])
   @@index([userId, category])
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  source      String
+  concept     String?
+  amount      Float
+  method      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, source])
 }
 
 enum OrderStatus {

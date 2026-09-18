@@ -58,3 +58,24 @@ export const orderSchema = z.object({
 });
 
 export type OrderInput = z.infer<typeof orderSchema>;
+
+export const incomeSchema = z.object({
+  id: z.string().min(1).optional(),
+  date: z.iso.date("Fecha inválida"),
+  source: z.string().trim().min(1, "La fuente es obligatoria").max(60),
+  concept: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  amount: z.coerce.number().positive("El importe debe ser mayor que 0"),
+  method: z
+    .string()
+    .trim()
+    .max(40)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+});
+
+export type IncomeInput = z.infer<typeof incomeSchema>;

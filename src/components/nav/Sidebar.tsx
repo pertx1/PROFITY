@@ -4,16 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { navItems } from "./nav-items";
+import { Logo } from "./Logo";
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
-      <div className="flex items-center gap-2 px-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-bold text-white">
-          P
-        </span>
+      <div className="flex items-center gap-2.5 px-2">
+        <Logo size={32} />
         <span className="text-lg font-semibold tracking-tight">PROFITY</span>
       </div>
       <nav className="mt-8 flex flex-col gap-1">

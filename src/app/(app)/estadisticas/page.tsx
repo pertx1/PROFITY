@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getSeriesForRange } from "@/lib/dashboard";
@@ -8,14 +9,23 @@ import {
   getTopModelSizes,
   getTopModels,
 } from "@/lib/stats";
-import { resolveRange } from "@/lib/date-range";
+import { resolveRange, type RangeKey } from "@/lib/date-range";
+import { trendChartDefs } from "@/lib/chart-defs";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RangeSelector } from "@/components/ui/RangeSelector";
 import { TrendAreaChart } from "@/components/charts/TrendAreaChart";
 import { RankedBarChart } from "@/components/charts/RankedBarChart";
+import { IconChevronRight } from "@/components/nav/icons";
 import { formatDate } from "@/lib/format";
 import type { OrderStatus } from "@/lib/order-status";
+
+function chartHref(key: string, range: RangeKey, from?: string, to?: string) {
+  if (range === "custom" && from && to) {
+    return `/estadisticas/${key}?range=custom&from=${from}&to=${to}`;
+  }
+  return `/estadisticas/${key}?range=${range}`;
+}
 
 export const metadata: Metadata = { title: "Estadísticas · PROFITY" };
 
@@ -24,10 +34,12 @@ export default async function EstadisticasPage({
 }: PageProps<"/estadisticas">) {
   const { userId } = await requireUser();
   const params = await searchParams;
+  const fromParam = typeof params.from === "string" ? params.from : undefined;
+  const toParam = typeof params.to === "string" ? params.to : undefined;
   const range = resolveRange({
     range: typeof params.range === "string" ? params.range : undefined,
-    from: typeof params.from === "string" ? params.from : undefined,
-    to: typeof params.to === "string" ? params.to : undefined,
+    from: fromParam,
+    to: toParam,
   });
 
   const [series, topModels, topModelSizes, topColors, topCategories, statusBreakdown] =
@@ -55,41 +67,25 @@ export default async function EstadisticasPage({
       </p>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="p-5">
-          <h2 className="text-base font-semibold">Gastos</h2>
-          <div className="mt-2">
-            <TrendAreaChart
-              data={series}
-              series={[{ key: "gastos", name: "Gastos", colorKey: "gastos" }]}
-              height={200}
-            />
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h2 className="text-base font-semibold">Beneficio</h2>
-          <div className="mt-2">
-            <TrendAreaChart
-              data={series}
-              series={[{ key: "beneficio", name: "Beneficio", colorKey: "beneficio" }]}
-              height={200}
-            />
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h2 className="text-base font-semibold">Ingresos vs. gastos</h2>
-          <div className="mt-2">
-            <TrendAreaChart
-              data={series}
-              series={[
-                { key: "ingresos", name: "Ingresos", colorKey: "ingresos" },
-                { key: "gastos", name: "Gastos", colorKey: "gastos" },
-              ]}
-              height={200}
-            />
-          </div>
-        </Card>
+        {(Object.entries(trendChartDefs) as [keyof typeof trendChartDefs, (typeof trendChartDefs)[keyof typeof trendChartDefs]][]).map(
+          ([key, def]) => (
+            <Link
+              key={key}
+              href={chartHref(key, range.key, fromParam, toParam)}
+              className="block"
+            >
+              <Card className="p-5 transition-shadow hover:shadow-md">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-semibold">{def.title}</h2>
+                  <IconChevronRight className="h-4 w-4 text-secondary" />
+                </div>
+                <div className="mt-2">
+                  <TrendAreaChart data={series} series={def.series} height={200} />
+                </div>
+              </Card>
+            </Link>
+          ),
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

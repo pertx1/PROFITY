@@ -8,43 +8,41 @@ import { DeleteButton } from "@/components/ui/DeleteButton";
 import { DeleteAllButton } from "@/components/ui/DeleteAllButton";
 import { FieldGroup, Input } from "@/components/ui/Field";
 import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
-import { ImportButton } from "@/components/ui/ImportButton";
 import { cn } from "@/lib/cn";
 import { getCategoryStyle } from "@/lib/category-color";
 import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
 import {
-  deleteAllExpensesAction,
-  deleteExpenseAction,
-  importExpensesAction,
-  saveExpenseAction,
-  type ExpenseFormState,
+  deleteAllIncomesAction,
+  deleteIncomeAction,
+  saveIncomeAction,
+  type IncomeFormState,
 } from "./actions";
 
-type Expense = {
+type Income = {
   id: string;
   date: Date;
-  category: string;
+  source: string;
   concept: string | null;
   amount: number;
-  paymentMethod: string | null;
+  method: string | null;
 };
 
-const emptyState: ExpenseFormState = {};
+const emptyState: IncomeFormState = {};
 
-export function ExpensesView({
-  expenses,
-  categories,
-  paymentMethods,
+export function IncomesView({
+  incomes,
+  sources,
+  methods,
 }: {
-  expenses: Expense[];
-  categories: string[];
-  paymentMethods: string[];
+  incomes: Income[];
+  sources: string[];
+  methods: string[];
 }) {
-  const [editing, setEditing] = useState<Expense | null>(null);
+  const [editing, setEditing] = useState<Income | null>(null);
   const [query, setQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"date" | "az" | "za">("date");
   const [state, formAction, isPending] = useActionState(
-    saveExpenseAction,
+    saveIncomeAction,
     emptyState,
   );
   const submittedRef = useRef(false);
@@ -63,20 +61,20 @@ export function ExpensesView({
 
   const today = toDateInputValue(new Date());
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredExpenses = normalizedQuery
-    ? expenses.filter((expense) =>
-        [expense.category, expense.concept, expense.paymentMethod]
+  const filteredIncomes = normalizedQuery
+    ? incomes.filter((income) =>
+        [income.source, income.concept, income.method]
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(normalizedQuery)),
       )
-    : expenses;
-  const visibleExpenses =
+    : incomes;
+  const visibleIncomes =
     sortOrder === "date"
-      ? filteredExpenses
-      : [...filteredExpenses].sort((a, b) =>
+      ? filteredIncomes
+      : [...filteredIncomes].sort((a, b) =>
           sortOrder === "az"
-            ? a.category.localeCompare(b.category, "es")
-            : b.category.localeCompare(a.category, "es"),
+            ? a.source.localeCompare(b.source, "es")
+            : b.source.localeCompare(a.source, "es"),
         );
 
   return (
@@ -84,17 +82,14 @@ export function ExpensesView({
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold">
-            {editing ? "Editar gasto" : "Nuevo gasto"}
+            {editing ? "Editar ingreso" : "Nuevo ingreso"}
           </h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <ImportButton action={importExpensesAction} label="Importar gastos" />
-            {expenses.length > 0 && (
-              <DeleteAllButton
-                action={deleteAllExpensesAction}
-                confirmMessage={`¿Seguro que quieres borrar TODOS tus gastos (${expenses.length})? No se puede deshacer.`}
-              />
-            )}
-          </div>
+          {incomes.length > 0 && (
+            <DeleteAllButton
+              action={deleteAllIncomesAction}
+              confirmMessage={`¿Seguro que quieres borrar TODOS tus ingresos manuales (${incomes.length})? No se puede deshacer.`}
+            />
+          )}
         </div>
         <form
           ref={formRef}
@@ -111,28 +106,26 @@ export function ExpensesView({
               id="date"
               name="date"
               type="date"
-              defaultValue={
-                editing ? toDateInputValue(editing.date) : today
-              }
+              defaultValue={editing ? toDateInputValue(editing.date) : today}
               key={editing?.id ?? "new-date"}
               max={today}
               required
             />
           </FieldGroup>
 
-          <FieldGroup label="Categoría" htmlFor="category">
+          <FieldGroup label="Fuente" htmlFor="source">
             <Input
-              id="category"
-              name="category"
-              list="category-options"
-              defaultValue={editing?.category ?? ""}
-              key={editing?.id ?? "new-category"}
-              placeholder="Ej. DTF, Camisetas, Envío"
+              id="source"
+              name="source"
+              list="source-options"
+              defaultValue={editing?.source ?? ""}
+              key={editing?.id ?? "new-source"}
+              placeholder="Ej. Etsy, Subvención, Reembolso"
               required
             />
-            <datalist id="category-options">
-              {categories.map((c) => (
-                <option key={c} value={c} />
+            <datalist id="source-options">
+              {sources.map((s) => (
+                <option key={s} value={s} />
               ))}
             </datalist>
           </FieldGroup>
@@ -160,18 +153,18 @@ export function ExpensesView({
             />
           </FieldGroup>
 
-          <FieldGroup label="Método de pago" htmlFor="paymentMethod">
+          <FieldGroup label="Método" htmlFor="method">
             <Input
-              id="paymentMethod"
-              name="paymentMethod"
-              list="payment-options"
-              defaultValue={editing?.paymentMethod ?? ""}
-              key={editing?.id ?? "new-payment"}
-              placeholder="Efectivo, Tarjeta…"
+              id="method"
+              name="method"
+              list="method-options"
+              defaultValue={editing?.method ?? ""}
+              key={editing?.id ?? "new-method"}
+              placeholder="Transferencia, PayPal…"
             />
-            <datalist id="payment-options">
-              {paymentMethods.map((p) => (
-                <option key={p} value={p} />
+            <datalist id="method-options">
+              {methods.map((m) => (
+                <option key={m} value={m} />
               ))}
             </datalist>
           </FieldGroup>
@@ -196,7 +189,7 @@ export function ExpensesView({
             )}
             <Button type="submit" disabled={isPending}>
               <IconPlus className="h-4 w-4" />
-              {isPending ? "Guardando…" : editing ? "Guardar cambios" : "Añadir gasto"}
+              {isPending ? "Guardando…" : editing ? "Guardar cambios" : "Añadir ingreso"}
             </Button>
           </div>
         </form>
@@ -206,7 +199,7 @@ export function ExpensesView({
         <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
         <Input
           type="search"
-          placeholder="Buscar por categoría, concepto o método de pago…"
+          placeholder="Buscar por fuente, concepto o método…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10"
@@ -218,8 +211,8 @@ export function ExpensesView({
         {(
           [
             { key: "date", label: "Recientes" },
-            { key: "az", label: "Categoría A → Z" },
-            { key: "za", label: "Categoría Z → A" },
+            { key: "az", label: "Fuente A → Z" },
+            { key: "za", label: "Fuente Z → A" },
           ] as const
         ).map((opt) => (
           <button
@@ -239,57 +232,55 @@ export function ExpensesView({
       </div>
 
       <Card className="overflow-hidden">
-        {expenses.length === 0 ? (
+        {incomes.length === 0 ? (
           <p className="py-10 text-center text-sm text-secondary">
-            Todavía no has registrado ningún gasto.
+            Todavía no has registrado ingresos aquí. Los pedidos cuentan aparte,
+            esto es para dinero que entra sin ser un pedido.
           </p>
-        ) : visibleExpenses.length === 0 ? (
+        ) : visibleIncomes.length === 0 ? (
           <p className="py-10 text-center text-sm text-secondary">
-            Ningún gasto coincide con &quot;{query}&quot;.
+            Ningún ingreso coincide con &quot;{query}&quot;.
           </p>
         ) : (
           <ul className="divide-y divide-border">
-            {visibleExpenses.map((expense) => {
-              const style = getCategoryStyle(expense.category);
+            {visibleIncomes.map((income) => {
+              const style = getCategoryStyle(income.source);
               return (
-              <li
-                key={expense.id}
-                className="flex items-center gap-3 px-5 py-3"
-              >
-                <span className={cn("h-9 w-1 shrink-0 rounded-full", style.dot)} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <CategoryBadge label={expense.category} />
-                    {expense.concept && (
-                      <span className="text-sm text-secondary">{expense.concept}</span>
-                    )}
+                <li key={income.id} className="flex items-center gap-3 px-5 py-3">
+                  <span className={cn("h-9 w-1 shrink-0 rounded-full", style.dot)} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <CategoryBadge label={income.source} />
+                      {income.concept && (
+                        <span className="text-sm text-secondary">{income.concept}</span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-secondary">
+                      {formatDate(income.date)}
+                      {income.method ? ` · ${income.method}` : ""}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-secondary">
-                    {formatDate(expense.date)}
-                    {expense.paymentMethod ? ` · ${expense.paymentMethod}` : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <span className="mr-2 text-sm font-semibold text-danger">
-                    -{formatCurrency(expense.amount)}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Editar"
-                    onClick={() => {
-                      setEditing(expense);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-secondary transition-colors hover:bg-accent/10 hover:text-accent"
-                  >
-                    <IconEdit className="h-4 w-4" />
-                  </button>
-                  <form action={deleteExpenseAction}>
-                    <input type="hidden" name="id" value={expense.id} />
-                    <DeleteButton confirmMessage="¿Eliminar este gasto?" />
-                  </form>
-                </div>
-              </li>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="mr-2 text-sm font-semibold text-success">
+                      +{formatCurrency(income.amount)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Editar"
+                      onClick={() => {
+                        setEditing(income);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-secondary transition-colors hover:bg-accent/10 hover:text-accent"
+                    >
+                      <IconEdit className="h-4 w-4" />
+                    </button>
+                    <form action={deleteIncomeAction}>
+                      <input type="hidden" name="id" value={income.id} />
+                      <DeleteButton confirmMessage="¿Eliminar este ingreso?" />
+                    </form>
+                  </div>
+                </li>
               );
             })}
           </ul>

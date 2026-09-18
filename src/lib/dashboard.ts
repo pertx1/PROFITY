@@ -7,34 +7,49 @@ export async function getFinancialSummary(userId: string) {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [expensesAgg, ordersAgg, expensesMonthAgg, ordersMonthAgg] =
-    await Promise.all([
-      prisma.expense.aggregate({
-        where: { userId },
-        _sum: { amount: true },
-      }),
-      prisma.order.aggregate({
-        where: { userId, status: { not: "CANCELADO" } },
-        _sum: { price: true },
-      }),
-      prisma.expense.aggregate({
-        where: { userId, date: { gte: startOfMonth } },
-        _sum: { amount: true },
-      }),
-      prisma.order.aggregate({
-        where: {
-          userId,
-          status: { not: "CANCELADO" },
-          date: { gte: startOfMonth },
-        },
-        _sum: { price: true },
-      }),
-    ]);
+  const [
+    expensesAgg,
+    ordersAgg,
+    incomesAgg,
+    expensesMonthAgg,
+    ordersMonthAgg,
+    incomesMonthAgg,
+  ] = await Promise.all([
+    prisma.expense.aggregate({
+      where: { userId },
+      _sum: { amount: true },
+    }),
+    prisma.order.aggregate({
+      where: { userId, status: { not: "CANCELADO" } },
+      _sum: { price: true },
+    }),
+    prisma.income.aggregate({
+      where: { userId },
+      _sum: { amount: true },
+    }),
+    prisma.expense.aggregate({
+      where: { userId, date: { gte: startOfMonth } },
+      _sum: { amount: true },
+    }),
+    prisma.order.aggregate({
+      where: {
+        userId,
+        status: { not: "CANCELADO" },
+        date: { gte: startOfMonth },
+      },
+      _sum: { price: true },
+    }),
+    prisma.income.aggregate({
+      where: { userId, date: { gte: startOfMonth } },
+      _sum: { amount: true },
+    }),
+  ]);
 
   const totalGastos = expensesAgg._sum.amount ?? 0;
-  const totalIngresos = ordersAgg._sum.price ?? 0;
+  const totalIngresos = (ordersAgg._sum.price ?? 0) + (incomesAgg._sum.amount ?? 0);
   const gastosMes = expensesMonthAgg._sum.amount ?? 0;
-  const ingresosMes = ordersMonthAgg._sum.price ?? 0;
+  const ingresosMes =
+    (ordersMonthAgg._sum.price ?? 0) + (incomesMonthAgg._sum.amount ?? 0);
 
   return {
     totalGastos,
@@ -69,7 +84,7 @@ export async function getMonthlySeries(userId: string, months = 6) {
   start.setDate(1);
   start.setHours(0, 0, 0, 0);
 
-  const [expenses, orders] = await Promise.all([
+  const [expenses, orders, incomes] = await Promise.all([
     prisma.expense.findMany({
       where: { userId, date: { gte: start } },
       select: { date: true, amount: true },
@@ -77,6 +92,10 @@ export async function getMonthlySeries(userId: string, months = 6) {
     prisma.order.findMany({
       where: { userId, date: { gte: start }, status: { not: "CANCELADO" } },
       select: { date: true, price: true },
+    }),
+    prisma.income.findMany({
+      where: { userId, date: { gte: start } },
+      select: { date: true, amount: true },
     }),
   ]);
 
@@ -113,6 +132,11 @@ export async function getMonthlySeries(userId: string, months = 6) {
     const idx = bucketIndex.get(key);
     if (idx !== undefined) buckets[idx].ingresos += o.price;
   }
+  for (const inc of incomes) {
+    const key = `${inc.date.getFullYear()}-${inc.date.getMonth()}`;
+    const idx = bucketIndex.get(key);
+    if (idx !== undefined) buckets[idx].ingresos += inc.amount;
+  }
   for (const b of buckets) {
     b.beneficio = b.ingresos - b.gastos;
   }
@@ -123,7 +147,7 @@ export async function getMonthlySeries(userId: string, months = 6) {
 export async function getSeriesForRange(userId: string, start: Date, end: Date) {
   const { buckets, bucketIndex, bucketOf } = buildBuckets(start, end);
 
-  const [expenses, orders] = await Promise.all([
+  const [expenses, orders, incomes] = await Promise.all([
     prisma.expense.findMany({
       where: { userId, date: { gte: start, lte: end } },
       select: { date: true, amount: true },
@@ -136,6 +160,10 @@ export async function getSeriesForRange(userId: string, start: Date, end: Date) 
       },
       select: { date: true, price: true },
     }),
+    prisma.income.findMany({
+      where: { userId, date: { gte: start, lte: end } },
+      select: { date: true, amount: true },
+    }),
   ]);
 
   for (const e of expenses) {
@@ -145,6 +173,10 @@ export async function getSeriesForRange(userId: string, start: Date, end: Date) 
   for (const o of orders) {
     const idx = bucketIndex.get(bucketOf(o.date));
     if (idx !== undefined) buckets[idx].ingresos += o.price;
+  }
+  for (const inc of incomes) {
+    const idx = bucketIndex.get(bucketOf(inc.date));
+    if (idx !== undefined) buckets[idx].ingresos += inc.amount;
   }
   for (const b of buckets) {
     b.beneficio = b.ingresos - b.gastos;
