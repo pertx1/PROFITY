@@ -79,3 +79,33 @@ export const incomeSchema = z.object({
 });
 
 export type IncomeInput = z.infer<typeof incomeSchema>;
+
+export const tshirtModelValues = ["BLANCA", "NEGRA", "FUTBOL"] as const;
+export const dtfVariantValues = ["UNICO", "BLANCO", "NEGRO"] as const;
+
+export const stockAdjustSchema = z.object({
+  amount: z.coerce.number().int().positive("La cantidad debe ser mayor que 0"),
+  direction: z.enum(["1", "-1"]),
+});
+
+export const tshirtAdjustSchema = stockAdjustSchema.extend({
+  model: z.enum(tshirtModelValues),
+  size: z.string().trim().min(1).max(10),
+});
+
+export const dtfAdjustSchema = stockAdjustSchema.extend({
+  name: z.string().trim().min(1).max(60),
+  variant: z.enum(dtfVariantValues),
+});
+
+export const productionSchema = z.object({
+  model: z.enum(tshirtModelValues),
+  size: z.string().trim().min(1).max(10),
+  quantity: z.coerce.number().int().positive("La cantidad debe ser mayor que 0"),
+  designName: z
+    .string()
+    .trim()
+    .max(60)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+});

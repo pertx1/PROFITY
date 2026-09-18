@@ -17,9 +17,11 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  expenses Expense[]
-  orders   Order[]
-  incomes  Income[]
+  expenses     Expense[]
+  orders       Order[]
+  incomes      Income[]
+  tshirtStocks TshirtStock[]
+  dtfStocks    DtfStock[]
 }
 
 model Expense {
@@ -61,6 +63,44 @@ enum OrderStatus {
   ENVIADO
   SIN_LLEGAR
   CANCELADO
+}
+
+enum TshirtModel {
+  BLANCA
+  NEGRA
+  FUTBOL
+}
+
+enum DtfVariant {
+  UNICO
+  BLANCO
+  NEGRO
+}
+
+model TshirtStock {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model     TshirtModel
+  size      String
+  quantity  Int         @default(0)
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, model, size])
+  @@index([userId])
+}
+
+model DtfStock {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  variant   DtfVariant
+  quantity  Int        @default(0)
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, name, variant])
+  @@index([userId])
 }
 
 model Order {

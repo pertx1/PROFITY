@@ -119,6 +119,30 @@ export function IconTrendDown(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function IconLayers(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="m12 3 9 5-9 5-9-5 9-5Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m3 12 9 5 9-5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m3 16.5 9 5 9-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconAlert(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path
+        d="M12 3.5 22 20.5H2L12 3.5Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4.5" strokeLinecap="round" />
+      <circle cx="12" cy="17.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function IconScale(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
