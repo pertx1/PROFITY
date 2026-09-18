@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { readFileSync, existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { prisma } from "../src/lib/prisma";
