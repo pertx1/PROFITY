@@ -7,8 +7,6 @@ import {
   TSHIRT_MODELS,
   TSHIRT_MODEL_LABELS,
   TSHIRT_SIZES,
-  isStandaloneDesign,
-  pairedVariantForModel,
   resolveOrderStockEffect,
   type DtfVariant,
   type TshirtModel,
@@ -33,13 +31,62 @@ export async function ensureStockRows(userId: string) {
   ]);
 }
 
+/**
+ * Cuánto stock reservan ahora mismo los pedidos activos (todos menos los
+ * cancelados), comparando el modelo/color/talla de cada pedido con el
+ * catálogo de camisetas y DTF. Esto es lo único que resta stock: un pedido
+ * "sin hacer" ya cuenta, tanto si lo acabas de añadir como si llevaba tiempo
+ * ahí.
+ */
+async function getOrderDemand(userId: string) {
+  const orders = await prisma.order.findMany({
+    where: { userId, status: { not: "CANCELADO" } },
+    select: { model: true, color: true, size: true, quantity: true },
+  });
+
+  const tshirtDemand = new Map<string, number>();
+  const dtfDemand = new Map<string, number>();
+
+  for (const order of orders) {
+    const effect = resolveOrderStockEffect(order);
+    if (effect.tshirt) {
+      const key = `${effect.tshirt.model}_${effect.tshirt.size}`;
+      tshirtDemand.set(key, (tshirtDemand.get(key) ?? 0) + order.quantity);
+    }
+    if (effect.dtf) {
+      const key = `${effect.dtf.name}_${effect.dtf.variant}`;
+      dtfDemand.set(key, (dtfDemand.get(key) ?? 0) + order.quantity);
+    }
+  }
+
+  return { tshirtDemand, dtfDemand };
+}
+
 export async function getStockOverview(userId: string) {
   await ensureStockRows(userId);
 
-  const [tshirtStocks, dtfStocks] = await Promise.all([
-    prisma.tshirtStock.findMany({ where: { userId }, orderBy: [{ model: "asc" }, { size: "asc" }] }),
-    prisma.dtfStock.findMany({ where: { userId }, orderBy: [{ name: "asc" }, { variant: "asc" }] }),
+  const [tshirtRows, dtfRows, { tshirtDemand, dtfDemand }] = await Promise.all([
+    prisma.tshirtStock.findMany({
+      where: { userId },
+      orderBy: [{ model: "asc" }, { size: "asc" }],
+    }),
+    prisma.dtfStock.findMany({
+      where: { userId },
+      orderBy: [{ name: "asc" }, { variant: "asc" }],
+    }),
+    getOrderDemand(userId),
   ]);
+
+  // La cantidad "de verdad" es lo que tienes hecho/comprado menos lo que
+  // piden tus pedidos activos ahora mismo. Puede ser negativa.
+  const tshirtStocks = tshirtRows.map((s) => ({
+    ...s,
+    quantity: s.quantity - (tshirtDemand.get(`${s.model}_${s.size}`) ?? 0),
+  }));
+  const dtfStocks = dtfRows.map((s) => ({
+    ...s,
+    quantity: s.quantity - (dtfDemand.get(`${s.name}_${s.variant}`) ?? 0),
+  }));
 
   const needsOrder = [
     ...tshirtStocks
@@ -67,6 +114,7 @@ export async function getStockOverview(userId: string) {
   return { tshirtStocks, dtfStocks, needsOrder, tshirtTotal, dtfTotal };
 }
 
+/** Ajusta el stock base (lo que tienes hecho/comprado), antes de restar pedidos. */
 export async function adjustTshirtStock(
   userId: string,
   model: TshirtModel,
@@ -80,6 +128,7 @@ export async function adjustTshirtStock(
   });
 }
 
+/** Ajusta el stock base (lo que tienes hecho/comprado), antes de restar pedidos. */
 export async function adjustDtfStock(
   userId: string,
   name: string,
@@ -90,77 +139,5 @@ export async function adjustDtfStock(
     where: { userId_name_variant: { userId, name, variant } },
     update: { quantity: { increment: delta } },
     create: { userId, name, variant, quantity: delta },
-  });
-}
-
-export async function registerProduction(
-  userId: string,
-  {
-    model,
-    size,
-    quantity,
-    designName,
-  }: { model: TshirtModel; size: string; quantity: number; designName?: string },
-) {
-  await prisma.$transaction(async (tx) => {
-    await tx.tshirtStock.upsert({
-      where: { userId_model_size: { userId, model, size } },
-      update: { quantity: { decrement: quantity } },
-      create: { userId, model, size, quantity: -quantity },
-    });
-
-    if (!designName) return;
-
-    const variant: DtfVariant | null = isStandaloneDesign(designName)
-      ? "UNICO"
-      : pairedVariantForModel(model);
-
-    // Un diseño emparejado sobre un modelo sin pareja (p. ej. fútbol) no descuenta DTF.
-    if (!variant) return;
-
-    await tx.dtfStock.upsert({
-      where: { userId_name_variant: { userId, name: designName, variant } },
-      update: { quantity: { decrement: quantity } },
-      create: { userId, name: designName, variant, quantity: -quantity },
-    });
-  });
-}
-
-/**
- * Descuenta (o repone) el stock que corresponde a un pedido, a partir de su
- * modelo/color/talla. `direction: "consume"` se usa al crear un pedido o al
- * aplicar sus valores nuevos en una edición; `"restore"` al borrar un pedido
- * o al deshacer sus valores antiguos antes de aplicar los nuevos.
- */
-export async function applyOrderStockEffect(
-  userId: string,
-  order: { model: string; color?: string | null; size?: string | null; quantity: number },
-  direction: "consume" | "restore",
-) {
-  const effect = resolveOrderStockEffect(order);
-  if (!effect.tshirt && !effect.dtf) return;
-
-  const sign = direction === "consume" ? -1 : 1;
-  const delta = order.quantity * sign;
-
-  await prisma.$transaction(async (tx) => {
-    if (effect.tshirt) {
-      await tx.tshirtStock.upsert({
-        where: {
-          userId_model_size: { userId, model: effect.tshirt.model, size: effect.tshirt.size },
-        },
-        update: { quantity: { increment: delta } },
-        create: { userId, model: effect.tshirt.model, size: effect.tshirt.size, quantity: delta },
-      });
-    }
-    if (effect.dtf) {
-      await tx.dtfStock.upsert({
-        where: {
-          userId_name_variant: { userId, name: effect.dtf.name, variant: effect.dtf.variant },
-        },
-        update: { quantity: { increment: delta } },
-        create: { userId, name: effect.dtf.name, variant: effect.dtf.variant, quantity: delta },
-      });
-    }
   });
 }

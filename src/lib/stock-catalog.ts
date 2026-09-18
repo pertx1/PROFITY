@@ -46,13 +46,6 @@ export function isStandaloneDesign(name: string) {
   return STANDALONE_DTF_DESIGNS.includes(name);
 }
 
-/** Diseños que tiene sentido ofrecer al registrar producción para un modelo dado. */
-export function availableDesignsForModel(model: TshirtModel | ""): string[] {
-  if (!model) return ALL_DTF_DESIGNS;
-  if (pairedVariantForModel(model)) return ALL_DTF_DESIGNS;
-  return STANDALONE_DTF_DESIGNS;
-}
-
 function normalizeStockText(value: string) {
   return value
     .normalize("NFD")

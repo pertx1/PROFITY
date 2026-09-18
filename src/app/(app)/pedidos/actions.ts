@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { orderSchema } from "@/lib/validation";
 import { parseOrdersFile } from "@/lib/import";
-import { applyOrderStockEffect } from "@/lib/stock";
 
 export type OrderFormState = { error?: string };
 export type ImportState = { error?: string; imported?: number; skipped?: number };
@@ -60,12 +59,9 @@ export async function saveOrderAction(
       return { error: "Pedido no encontrado" };
     }
     await prisma.order.update({ where: { id }, data });
-    await applyOrderStockEffect(userId, existing, "restore");
   } else {
     await prisma.order.create({ data: { ...data, userId } });
   }
-
-  await applyOrderStockEffect(userId, data, "consume");
 
   revalidateAfterChange();
   return {};
@@ -80,7 +76,6 @@ export async function deleteOrderAction(formData: FormData) {
   if (!existing || existing.userId !== userId) return;
 
   await prisma.order.delete({ where: { id } });
-  await applyOrderStockEffect(userId, existing, "restore");
   revalidateAfterChange();
 }
 

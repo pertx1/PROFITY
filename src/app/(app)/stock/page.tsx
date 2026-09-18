@@ -10,10 +10,9 @@ import {
   type TshirtModel,
 } from "@/lib/stock-catalog";
 import { Card } from "@/components/ui/Card";
-import { IconChevronRight } from "@/components/nav/icons";
+import { IconBox, IconChevronRight } from "@/components/nav/icons";
 import { NeedsOrderPanel } from "@/components/stock/NeedsOrderPanel";
 import { cn } from "@/lib/cn";
-import { ProduceForm } from "./ProduceForm";
 
 export const metadata: Metadata = { title: "Stock · PROFITY" };
 
@@ -48,7 +47,21 @@ export default async function StockPage() {
 
       <NeedsOrderPanel items={needsOrder} />
 
-      <ProduceForm />
+      <Card className="flex items-start gap-3 p-5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/12 text-accent">
+          <IconBox className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold">Esto se descuenta solo</h2>
+          <p className="mt-1 text-sm text-secondary">
+            Cada pedido que no esté cancelado resta su camiseta (y su DTF, si el
+            modelo es un diseño) de aquí abajo. No hace falta registrar nada
+            aparte: se compara directamente con tu página de Pedidos. Usa los
+            botones −/+ de cada talla o diseño solo para decir cuánto tienes
+            hecho o comprado.
+          </p>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Link href="/stock/camisetas" className="block">

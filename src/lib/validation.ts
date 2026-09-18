@@ -97,15 +97,3 @@ export const dtfAdjustSchema = stockAdjustSchema.extend({
   name: z.string().trim().min(1).max(60),
   variant: z.enum(dtfVariantValues),
 });
-
-export const productionSchema = z.object({
-  model: z.enum(tshirtModelValues),
-  size: z.string().trim().min(1).max(10),
-  quantity: z.coerce.number().int().positive("La cantidad debe ser mayor que 0"),
-  designName: z
-    .string()
-    .trim()
-    .max(60)
-    .optional()
-    .transform((v) => (v ? v : undefined)),
-});
