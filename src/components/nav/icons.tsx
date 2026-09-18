@@ -92,3 +92,31 @@ export function IconSearch(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconTrendUp(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M4 16 10 10l4 4 6-7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 7h5v5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconTrendDown(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M4 8 10 14l4-4 6 7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 17h5v-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconScale(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M12 3v18M8 21h8" strokeLinecap="round" />
+      <path d="M5 7h5M14 7h5" strokeLinecap="round" />
+      <path d="m5 7-2.5 5A2.5 2.5 0 0 0 5 15a2.5 2.5 0 0 0 2.5-3L5 7ZM19 7l-2.5 5a2.5 2.5 0 0 0 2.5 3 2.5 2.5 0 0 0 2.5-3L19 7Z" strokeLinejoin="round" />
+    </svg>
+  );
+}

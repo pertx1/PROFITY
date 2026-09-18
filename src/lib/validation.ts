@@ -33,7 +33,12 @@ export const orderStatusValues = [
 export const orderSchema = z.object({
   id: z.string().min(1).optional(),
   date: z.iso.date("Fecha inválida"),
-  orderNumber: z.coerce.number().int().optional(),
+  orderNumber: z
+    .string()
+    .trim()
+    .max(40)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
   quantity: z.coerce.number().int().positive().default(1),
   model: z.string().trim().min(1, "El modelo es obligatorio").max(80),
   color: z

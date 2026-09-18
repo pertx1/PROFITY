@@ -33,6 +33,8 @@ export function MonthlyBarChart({ data }: { data: MonthPoint[] }) {
           axisLine={{ stroke: c.baseline }}
           tickLine={false}
           tick={{ fill: c.muted, fontSize: 12 }}
+          interval="preserveStartEnd"
+          minTickGap={24}
         />
         <YAxis
           axisLine={false}

@@ -125,9 +125,18 @@ export async function importOrdersAction(
     }
   }
 
+  // Los pedidos con un número (p.ej. 1001) se ordenan por ese número; los
+  // que llevan un nombre en vez de número (pedidos informales) se dejan al
+  // final, en el mismo orden en que aparecían en el Excel.
+  const orderSortKey = (value: string | null) => {
+    const n = value ? Number(value) : NaN;
+    return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+  };
   const ordered = hasAnyDate
     ? rows
-    : [...rows].sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0));
+    : [...rows].sort(
+        (a, b) => orderSortKey(a.orderNumber) - orderSortKey(b.orderNumber),
+      );
 
   await prisma.order.createMany({
     data: ordered.map((row, index) => {
@@ -158,4 +167,10 @@ export async function importOrdersAction(
 
   revalidateAfterChange();
   return { imported: rows.length, skipped };
+}
+
+export async function deleteAllOrdersAction() {
+  const { userId } = await requireUser();
+  await prisma.order.deleteMany({ where: { userId } });
+  revalidateAfterChange();
 }

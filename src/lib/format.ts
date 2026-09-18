@@ -22,3 +22,8 @@ export function toDateInputValue(value: Date | string) {
   const date = typeof value === "string" ? new Date(value) : value;
   return date.toISOString().slice(0, 10);
 }
+
+export function formatOrderRef(value: string | null) {
+  if (!value) return "";
+  return /^\d+$/.test(value) ? `#${value}` : value;
+}

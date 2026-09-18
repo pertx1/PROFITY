@@ -6,13 +6,16 @@ dispositivo. Sustituye tu Excel por una web con login y base de datos.
 ## Qué incluye
 
 - **Login** con email y contraseña (sesión guardada 30 días).
-- **Gastos**: alta, edición y borrado, con categoría y método de pago.
-- **Pedidos**: alta, edición, borrado y estado (sin hacer / en casa / en
-  paquete / enviado / sin llegar / cancelado).
+- **Gastos**: alta, edición, borrado, búsqueda e importación desde Excel.
+- **Pedidos**: alta, edición, borrado, búsqueda, estado (sin hacer / en
+  casa / en paquete / enviado / sin llegar / cancelado) e importación
+  desde Excel. El "número de pedido" también acepta nombres (pedidos
+  informales sin número).
 - **Beneficio**: resumen de ingresos, gastos y beneficio, total y del mes,
   con un gráfico de los últimos 6 meses.
 - **Estadísticas**: modelos y combinaciones modelo+talla más vendidas,
-  colores más vendidos, y en qué categorías se va más el dinero.
+  colores más vendidos, y en qué categorías se va más el dinero. El rango
+  de fechas es configurable (24h, 7/30/90/100/365 días o personalizado).
 
 Los datos se guardan en una base de datos Postgres (no en el navegador),
 así que entras desde el móvil, la tablet o el ordenador y siempre ves lo
@@ -41,11 +44,14 @@ Con esta combinación no pagas nada para uso personal:
    Desde tu ordenador, con el mismo `DATABASE_URL` en tu `.env` local:
    ```bash
    npm run db:deploy   # aplica las migraciones a la base de datos real
-   npm run db:seed     # opcional: importa tus datos del Excel otra vez
    ```
+   Si no tienes el proyecto en tu ordenador, puedes ejecutar el SQL de
+   `prisma/migrations/*/migration.sql` directamente desde el **SQL
+   Editor** de Neon (uno por uno, en orden).
 6. Entra en la URL que te da Vercel (algo como
-   `https://profity-tuusuario.vercel.app`) y regístrate, o usa la cuenta
-   que haya creado `db:seed`.
+   `https://profity-tuusuario.vercel.app`), regístrate, y usa el botón
+   **"Importar Excel"** de las páginas de Gastos y Pedidos para meter tus
+   datos — no hace falta ni SQL ni tocar la base de datos a mano.
 
 **Importante sobre el plan gratuito de Vercel**: el plan Hobby es gratis
 solo para uso personal/no comercial (no para vender un producto a
@@ -65,24 +71,23 @@ Abre [http://localhost:3000](http://localhost:3000), regístrate con tu
 email y empieza a meter datos. Para desarrollo local puedes usar la misma
 base de datos gratuita de Neon (más simple) o una Postgres local.
 
-### Tus datos del Excel
+### Importar tu Excel
 
-Ya importé una vez tus gastos y pedidos del Excel `AKERRA20_version_1.xlsx`
-a una cuenta con tu email (`mnysoon@gmail.com`). Cuando conectes tu propia
-base de datos (Neon u otra) y ejecutes `npm run db:seed`, se creará esa
-misma cuenta con una contraseña temporal aleatoria que el propio comando
-imprime en la terminal — apúntala ahí, cambia con la frecuencia que
-quieras (de momento no hay pantalla para cambiar contraseña; pídemelo si
-la quieres).
+En las páginas de **Gastos** y **Pedidos** hay un botón **"Importar
+Excel"**: sube tu `.xlsx` (puedes subir el libro completo con todas las
+hojas, o solo la hoja suelta — detecta la hoja correcta por su nombre, y
+si hay varias hojas de pedidos tipo "Pedidos" y "Pedidos EH" las junta
+todas). No se salta ninguna fila por datos incompletos: si falta la
+categoría, el modelo o el precio, rellena un valor por defecto en vez de
+descartarla. El "número de pedido" también admite texto (pedidos
+informales apuntados con un nombre en vez de un número).
 
-El Excel original no guardaba una fecha por pedido (solo por gasto), así
-que las fechas de los pedidos importados se reparten de forma proporcional
-dentro del rango de fechas de tus gastos, para que el gráfico de evolución
-tenga sentido. Los importes, modelos, tallas, colores y estados son los
-reales de tu Excel.
+Si el Excel no trae una fecha por pedido (lo habitual), las fechas se
+reparten de forma proporcional dentro del rango de fechas de tus gastos,
+para que el gráfico de evolución tenga sentido.
 
-El script no borra datos existentes: si la cuenta ya tiene gastos o
-pedidos, `db:seed` no hace nada (para evitar duplicar).
+Importar no borra lo que ya tengas — si quieres empezar de cero, usa el
+botón **"Borrar todo"** de cada página antes de reimportar.
 
 ## Variables de entorno
 

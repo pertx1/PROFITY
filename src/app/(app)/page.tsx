@@ -4,7 +4,9 @@ import { requireUser } from "@/lib/auth";
 import { getFinancialSummary, getMonthlySeries, getRecentActivity } from "@/lib/dashboard";
 import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
+import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
+import { IconScale, IconTrendDown, IconTrendUp } from "@/components/nav/icons";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Beneficio · PROFITY" };
@@ -31,17 +33,23 @@ export default async function DashboardPage() {
           label="Ingresos totales"
           value={formatCurrency(summary.totalIngresos)}
           hint={`${formatCurrency(summary.ingresosMes)} este mes`}
+          icon={IconTrendUp}
+          iconTone="blue"
         />
         <StatCard
           label="Gastos totales"
           value={formatCurrency(summary.totalGastos)}
           hint={`${formatCurrency(summary.gastosMes)} este mes`}
+          icon={IconTrendDown}
+          iconTone="red"
         />
         <StatCard
           label="Beneficio"
           value={formatCurrency(summary.beneficio)}
           hint={`${formatCurrency(summary.beneficioMes)} este mes`}
           tone={summary.beneficio >= 0 ? "positive" : "negative"}
+          icon={IconScale}
+          iconTone={summary.beneficio >= 0 ? "green" : "red"}
         />
       </div>
 
@@ -67,15 +75,15 @@ export default async function DashboardPage() {
               </p>
             )}
             {recent.expenses.map((expense) => (
-              <li key={expense.id} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium">{expense.category}</p>
-                  <p className="text-xs text-secondary">
+              <li key={expense.id} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <CategoryBadge label={expense.category} />
+                  <p className="mt-1 text-xs text-secondary">
                     {formatDate(expense.date)}
                     {expense.concept ? ` · ${expense.concept}` : ""}
                   </p>
                 </div>
-                <span className="text-sm font-semibold text-danger">
+                <span className="shrink-0 text-sm font-semibold text-danger">
                   -{formatCurrency(expense.amount)}
                 </span>
               </li>
@@ -97,15 +105,17 @@ export default async function DashboardPage() {
               </p>
             )}
             {recent.orders.map((order) => (
-              <li key={order.id} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium">
-                    {order.model}
-                    {order.size ? ` · ${order.size}` : ""}
-                  </p>
-                  <p className="text-xs text-secondary">{formatDate(order.date)}</p>
+              <li key={order.id} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <CategoryBadge label={order.model} />
+                    {order.size && (
+                      <span className="text-xs text-secondary">{order.size}</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-secondary">{formatDate(order.date)}</p>
                 </div>
-                <span className="text-sm font-semibold text-success">
+                <span className="shrink-0 text-sm font-semibold text-success">
                   +{formatCurrency(order.price)}
                 </span>
               </li>

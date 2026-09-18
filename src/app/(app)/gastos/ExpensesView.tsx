@@ -3,12 +3,17 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { DeleteButton } from "@/components/ui/DeleteButton";
+import { DeleteAllButton } from "@/components/ui/DeleteAllButton";
 import { FieldGroup, Input } from "@/components/ui/Field";
 import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
 import { ImportButton } from "@/components/ui/ImportButton";
+import { cn } from "@/lib/cn";
+import { getCategoryStyle } from "@/lib/category-color";
 import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
 import {
+  deleteAllExpensesAction,
   deleteExpenseAction,
   importExpensesAction,
   saveExpenseAction,
@@ -72,7 +77,15 @@ export function ExpensesView({
           <h2 className="text-base font-semibold">
             {editing ? "Editar gasto" : "Nuevo gasto"}
           </h2>
-          <ImportButton action={importExpensesAction} label="Importar gastos" />
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportButton action={importExpensesAction} label="Importar gastos" />
+            {expenses.length > 0 && (
+              <DeleteAllButton
+                action={deleteAllExpensesAction}
+                confirmMessage={`¿Seguro que quieres borrar TODOS tus gastos (${expenses.length})? No se puede deshacer.`}
+              />
+            )}
+          </div>
         </div>
         <form
           ref={formRef}
@@ -202,22 +215,22 @@ export function ExpensesView({
           </p>
         ) : (
           <ul className="divide-y divide-border">
-            {visibleExpenses.map((expense) => (
+            {visibleExpenses.map((expense) => {
+              const style = getCategoryStyle(expense.category);
+              return (
               <li
                 key={expense.id}
-                className="flex items-center justify-between gap-3 px-5 py-3"
+                className="flex items-center gap-3 px-5 py-3"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {expense.category}
-                    {expense.concept ? (
-                      <span className="font-normal text-secondary">
-                        {" "}
-                        · {expense.concept}
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="text-xs text-secondary">
+                <span className={cn("h-9 w-1 shrink-0 rounded-full", style.dot)} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <CategoryBadge label={expense.category} />
+                    {expense.concept && (
+                      <span className="text-sm text-secondary">{expense.concept}</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-secondary">
                     {formatDate(expense.date)}
                     {expense.paymentMethod ? ` · ${expense.paymentMethod}` : ""}
                   </p>
@@ -243,7 +256,8 @@ export function ExpensesView({
                   </form>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </Card>

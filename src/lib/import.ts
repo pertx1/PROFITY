@@ -54,19 +54,20 @@ function cellDate(value: ExcelJS.CellValue): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-async function loadSheet(buffer: ArrayBuffer, nameAliases: string[]) {
+async function loadMatchingSheets(buffer: ArrayBuffer, namePrefix: string) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   if (workbook.worksheets.length === 0) {
     throw new Error("El archivo no tiene ninguna hoja.");
   }
   // Si el Excel tiene varias hojas (como tu archivo original con Gastos,
-  // Pedidos, DTF, etc.) usamos la que coincide por nombre; si no la
-  // encuentra, o el archivo solo tiene una hoja, usa la primera.
-  const byName = workbook.worksheets.find((sheet) =>
-    nameAliases.includes(normalizeHeader(sheet.name)),
+  // Pedidos, Pedidos EH, DTF, etc.) cogemos TODAS las que empiecen por
+  // ese nombre (p.ej. "Pedidos" y "Pedidos EH"); si ninguna coincide, o
+  // el archivo solo tiene una hoja, usamos la primera.
+  const matching = workbook.worksheets.filter((sheet) =>
+    normalizeHeader(sheet.name).startsWith(namePrefix),
   );
-  return byName ?? workbook.worksheets[0];
+  return matching.length > 0 ? matching : [workbook.worksheets[0]];
 }
 
 function buildHeaderMap(sheet: ExcelJS.Worksheet) {
@@ -95,53 +96,69 @@ export type ParsedExpenseRow = {
 };
 
 export async function parseExpensesFile(buffer: ArrayBuffer) {
-  const sheet = await loadSheet(buffer, ["gastos", "gasto"]);
-  const headerMap = buildHeaderMap(sheet);
+  const sheets = await loadMatchingSheets(buffer, "gasto");
+  const rows: ParsedExpenseRow[] = [];
+  const skipped = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const dateCol = findColumn(headerMap, ["fecha"]);
-  const categoryCol = findColumn(headerMap, ["categoria"]);
-  const conceptCol = findColumn(headerMap, ["concepto"]);
-  const amountCol = findColumn(headerMap, ["precio", "importe"]);
-  const paymentCol = findColumn(headerMap, [
-    "metododepago",
-    "metodopago",
-    "pago",
-  ]);
+  for (const sheet of sheets) {
+    const headerMap = buildHeaderMap(sheet);
 
-  if (!dateCol || !categoryCol || !amountCol) {
-    throw new Error(
-      'No encuentro las columnas "Fecha", "Categoría" y "Precio" en la primera hoja del Excel.',
-    );
+    const dateCol = findColumn(headerMap, ["fecha"]);
+    const categoryCol = findColumn(headerMap, ["categoria"]);
+    const conceptCol = findColumn(headerMap, ["concepto"]);
+    const amountCol = findColumn(headerMap, ["precio", "importe"]);
+    const paymentCol = findColumn(headerMap, [
+      "metododepago",
+      "metodopago",
+      "pago",
+    ]);
+
+    if (!categoryCol && !amountCol) {
+      // esta hoja no parece de gastos, la saltamos entera
+      continue;
+    }
+
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const date = dateCol ? cellDate(row.getCell(dateCol).value) : null;
+      const category = categoryCol
+        ? cellText(row.getCell(categoryCol).value)
+        : null;
+      const concept = conceptCol
+        ? cellText(row.getCell(conceptCol).value)
+        : null;
+      const amount = amountCol ? cellNumber(row.getCell(amountCol).value) : null;
+      const paymentMethod = paymentCol
+        ? cellText(row.getCell(paymentCol).value)
+        : null;
+
+      const isEntirelyEmpty =
+        !date && !category && !concept && amount === null && !paymentMethod;
+      if (isEntirelyEmpty) return;
+
+      rows.push({
+        date: date ?? today,
+        category: category ?? "Sin categoría",
+        concept,
+        amount: amount ?? 0,
+        paymentMethod,
+      });
+    });
   }
 
-  const rows: ParsedExpenseRow[] = [];
-  let skipped = 0;
-
-  sheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    const date = cellDate(row.getCell(dateCol).value);
-    const category = cellText(row.getCell(categoryCol).value);
-    const amount = cellNumber(row.getCell(amountCol).value);
-    if (!date || !category || amount === null) {
-      if (date || category || amount !== null) skipped += 1;
-      return;
-    }
-    rows.push({
-      date,
-      category,
-      concept: conceptCol ? cellText(row.getCell(conceptCol).value) : null,
-      amount,
-      paymentMethod: paymentCol
-        ? cellText(row.getCell(paymentCol).value)
-        : null,
-    });
-  });
+  if (rows.length === 0 && skipped === 0) {
+    throw new Error(
+      'No encuentro ninguna fila de gastos (columnas "Fecha", "Categoría" o "Precio") en el archivo.',
+    );
+  }
 
   return { rows, skipped };
 }
 
 export type ParsedOrderRow = {
-  orderNumber: number | null;
+  orderNumber: string | null;
   quantity: number;
   model: string;
   color: string | null;
@@ -152,65 +169,92 @@ export type ParsedOrderRow = {
 };
 
 export async function parseOrdersFile(buffer: ArrayBuffer) {
-  const sheet = await loadSheet(buffer, ["pedidos", "pedido"]);
-  const headerMap = buildHeaderMap(sheet);
+  const sheets = await loadMatchingSheets(buffer, "pedido");
+  const rows: ParsedOrderRow[] = [];
+  const skipped = 0;
 
-  const orderNumberCol = findColumn(headerMap, [
-    "npedido",
-    "nopedido",
-    "numeropedido",
-    "pedido",
-  ]);
-  const quantityCol = findColumn(headerMap, ["cantidad"]);
-  const modelCol = findColumn(headerMap, ["modelo"]);
-  const colorCol = findColumn(headerMap, ["color"]);
-  const sizeCol = findColumn(headerMap, ["talla"]);
-  const priceCol = findColumn(headerMap, ["precio", "importe"]);
-  const statusCol = findColumn(headerMap, ["estado"]);
-  const dateCol = findColumn(headerMap, ["fecha"]);
+  for (const sheet of sheets) {
+    const headerMap = buildHeaderMap(sheet);
 
-  if (!modelCol || !priceCol) {
-    throw new Error(
-      'No encuentro las columnas "Modelo" y "Precio" en la primera hoja del Excel.',
-    );
+    const orderNumberCol = findColumn(headerMap, [
+      "npedido",
+      "nopedido",
+      "numeropedido",
+      "pedido",
+    ]);
+    const quantityCol = findColumn(headerMap, ["cantidad"]);
+    const modelCol = findColumn(headerMap, ["modelo"]);
+    const colorCol = findColumn(headerMap, ["color"]);
+    const sizeCol = findColumn(headerMap, ["talla"]);
+    const priceCol = findColumn(headerMap, ["precio", "importe"]);
+    const statusCol = findColumn(headerMap, ["estado"]);
+    const dateCol = findColumn(headerMap, ["fecha"]);
+
+    if (!orderNumberCol && !modelCol && !priceCol) {
+      // esta hoja no parece de pedidos, la saltamos entera
+      continue;
+    }
+
+    // Si la hoja no tiene columna "Modelo" (como una hoja de un único
+    // producto), usamos el nombre de la propia hoja como modelo por
+    // defecto en vez de "Sin modelo".
+    const defaultModel = modelCol ? "Sin modelo" : sheet.name.trim();
+
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const orderNumber = orderNumberCol
+        ? cellText(row.getCell(orderNumberCol).value)
+        : null;
+      const orderNumberAsNumber = orderNumberCol
+        ? cellNumber(row.getCell(orderNumberCol).value)
+        : null;
+      const model = modelCol ? cellText(row.getCell(modelCol).value) : null;
+      const color = colorCol ? cellText(row.getCell(colorCol).value) : null;
+      const size = sizeCol ? cellText(row.getCell(sizeCol).value) : null;
+      const price = priceCol ? cellNumber(row.getCell(priceCol).value) : null;
+      const quantity = quantityCol
+        ? cellNumber(row.getCell(quantityCol).value)
+        : null;
+      const status = statusCol
+        ? cellText(row.getCell(statusCol).value)
+        : null;
+      const date = dateCol ? cellDate(row.getCell(dateCol).value) : null;
+
+      const isEntirelyEmpty =
+        !orderNumber &&
+        !model &&
+        price === null &&
+        !color &&
+        !size &&
+        quantity === null &&
+        !status &&
+        !date;
+      if (isEntirelyEmpty) return;
+
+      // Fila de referencia/plantilla que algunos Excel dejan con Nº
+      // pedido = 0 y ningún otro dato real de producto.
+      const isZeroReferenceRow =
+        orderNumberAsNumber === 0 && !model && !color && !size;
+      if (isZeroReferenceRow) return;
+
+      rows.push({
+        orderNumber,
+        quantity: quantity && quantity > 0 ? Math.trunc(quantity) : 1,
+        model: model ?? defaultModel,
+        color,
+        size,
+        price: price ?? 0,
+        status: normalizeOrderStatus(status),
+        date,
+      });
+    });
   }
 
-  const rows: ParsedOrderRow[] = [];
-  let skipped = 0;
-
-  sheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    const model = cellText(row.getCell(modelCol).value);
-    const price = cellNumber(row.getCell(priceCol).value);
-    if (!model || price === null) {
-      if (model || price !== null) skipped += 1;
-      return;
-    }
-    const orderNumber = orderNumberCol
-      ? cellNumber(row.getCell(orderNumberCol).value)
-      : null;
-    if (orderNumberCol && orderNumber === 0) {
-      // fila de referencia/plantilla que algunos Excel dejan como Nº pedido = 0
-      skipped += 1;
-      return;
-    }
-    const quantity = quantityCol
-      ? cellNumber(row.getCell(quantityCol).value)
-      : null;
-
-    rows.push({
-      orderNumber: orderNumber !== null ? Math.trunc(orderNumber) : null,
-      quantity: quantity && quantity > 0 ? Math.trunc(quantity) : 1,
-      model,
-      color: colorCol ? cellText(row.getCell(colorCol).value) : null,
-      size: sizeCol ? cellText(row.getCell(sizeCol).value) : null,
-      price,
-      status: normalizeOrderStatus(
-        statusCol ? cellText(row.getCell(statusCol).value) : null,
-      ),
-      date: dateCol ? cellDate(row.getCell(dateCol).value) : null,
-    });
-  });
+  if (rows.length === 0 && skipped === 0) {
+    throw new Error(
+      'No encuentro ninguna fila de pedidos (columnas "Modelo", "Precio" o "Nº Pedido") en el archivo.',
+    );
+  }
 
   return { rows, skipped };
 }

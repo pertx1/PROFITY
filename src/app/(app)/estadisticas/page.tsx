@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
-import { getMonthlySeries } from "@/lib/dashboard";
+import { getSeriesForRange } from "@/lib/dashboard";
 import {
   getOrderStatusBreakdown,
   getTopColors,
@@ -8,25 +8,36 @@ import {
   getTopModelSizes,
   getTopModels,
 } from "@/lib/stats";
+import { resolveRange } from "@/lib/date-range";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { RangeSelector } from "@/components/ui/RangeSelector";
 import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
 import { RankedBarChart } from "@/components/charts/RankedBarChart";
+import { formatDate } from "@/lib/format";
 import type { OrderStatus } from "@/lib/order-status";
 
 export const metadata: Metadata = { title: "Estadísticas · PROFITY" };
 
-export default async function EstadisticasPage() {
+export default async function EstadisticasPage({
+  searchParams,
+}: PageProps<"/estadisticas">) {
   const { userId } = await requireUser();
+  const params = await searchParams;
+  const range = resolveRange({
+    range: typeof params.range === "string" ? params.range : undefined,
+    from: typeof params.from === "string" ? params.from : undefined,
+    to: typeof params.to === "string" ? params.to : undefined,
+  });
 
   const [series, topModels, topModelSizes, topColors, topCategories, statusBreakdown] =
     await Promise.all([
-      getMonthlySeries(userId, 12),
-      getTopModels(userId),
-      getTopModelSizes(userId),
-      getTopColors(userId),
-      getTopExpenseCategories(userId),
-      getOrderStatusBreakdown(userId),
+      getSeriesForRange(userId, range.start, range.end),
+      getTopModels(userId, range),
+      getTopModelSizes(userId, range),
+      getTopColors(userId, range),
+      getTopExpenseCategories(userId, range),
+      getOrderStatusBreakdown(userId, range),
     ]);
 
   return (
@@ -38,8 +49,13 @@ export default async function EstadisticasPage() {
         </p>
       </div>
 
+      <RangeSelector current={range.key} />
+      <p className="-mt-4 text-xs text-secondary">
+        {formatDate(range.start)} – {formatDate(range.end)}
+      </p>
+
       <Card className="p-5">
-        <h2 className="text-base font-semibold">Ingresos vs. gastos (12 meses)</h2>
+        <h2 className="text-base font-semibold">Ingresos vs. gastos</h2>
         <div className="mt-2">
           <MonthlyBarChart data={series} />
         </div>
@@ -83,7 +99,7 @@ export default async function EstadisticasPage() {
         <h2 className="text-base font-semibold">Pedidos por estado</h2>
         {statusBreakdown.length === 0 ? (
           <p className="mt-3 text-sm text-secondary">
-            Todavía no hay pedidos registrados.
+            No hay pedidos en este rango de fechas.
           </p>
         ) : (
           <div className="mt-3 flex flex-wrap gap-3">

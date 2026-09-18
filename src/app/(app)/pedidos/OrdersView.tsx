@@ -3,14 +3,19 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { DeleteButton } from "@/components/ui/DeleteButton";
+import { DeleteAllButton } from "@/components/ui/DeleteAllButton";
 import { FieldGroup, Input, Select } from "@/components/ui/Field";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ImportButton } from "@/components/ui/ImportButton";
 import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
-import { formatCurrency, formatDate, toDateInputValue } from "@/lib/format";
+import { cn } from "@/lib/cn";
+import { getCategoryStyle } from "@/lib/category-color";
+import { formatCurrency, formatDate, formatOrderRef, toDateInputValue } from "@/lib/format";
 import { orderStatusMeta, orderStatusValues, type OrderStatus } from "@/lib/order-status";
 import {
+  deleteAllOrdersAction,
   deleteOrderAction,
   importOrdersAction,
   saveOrderAction,
@@ -20,7 +25,7 @@ import {
 type Order = {
   id: string;
   date: Date;
-  orderNumber: number | null;
+  orderNumber: string | null;
   quantity: number;
   model: string;
   color: string | null;
@@ -71,9 +76,9 @@ export function OrdersView({
   const visibleOrders = orders.filter((order) => {
     if (statusFilter !== "TODOS" && order.status !== statusFilter) return false;
     if (!normalizedQuery) return true;
-    return [order.model, order.color, order.size, order.orderNumber?.toString()]
+    return [order.model, order.color, order.size, order.orderNumber]
       .filter(Boolean)
-      .some((value) => value!.toString().toLowerCase().includes(normalizedQuery));
+      .some((value) => value!.toLowerCase().includes(normalizedQuery));
   });
 
   return (
@@ -83,7 +88,15 @@ export function OrdersView({
           <h2 className="text-base font-semibold">
             {editing ? "Editar pedido" : "Nuevo pedido"}
           </h2>
-          <ImportButton action={importOrdersAction} label="Importar pedidos" />
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportButton action={importOrdersAction} label="Importar pedidos" />
+            {orders.length > 0 && (
+              <DeleteAllButton
+                action={deleteAllOrdersAction}
+                confirmMessage={`¿Seguro que quieres borrar TODOS tus pedidos (${orders.length})? No se puede deshacer.`}
+              />
+            )}
+          </div>
         </div>
         <form
           ref={formRef}
@@ -107,14 +120,14 @@ export function OrdersView({
             />
           </FieldGroup>
 
-          <FieldGroup label="Nº pedido" htmlFor="orderNumber">
+          <FieldGroup label="Nº / nombre de pedido" htmlFor="orderNumber">
             <Input
               id="orderNumber"
               name="orderNumber"
-              type="number"
+              type="text"
               defaultValue={editing?.orderNumber ?? ""}
               key={`${formKey}-orderNumber`}
-              placeholder="Opcional"
+              placeholder="Ej. 1001 o Aingeru"
             />
           </FieldGroup>
 
@@ -271,21 +284,26 @@ export function OrdersView({
           </p>
         ) : (
           <ul className="divide-y divide-border">
-            {visibleOrders.map((order) => (
+            {visibleOrders.map((order) => {
+              const style = getCategoryStyle(order.model);
+              return (
               <li
                 key={order.id}
-                className="flex items-center justify-between gap-3 px-5 py-3"
+                className="flex items-center gap-3 px-5 py-3"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {order.model}
-                    {order.color ? ` · ${order.color}` : ""}
-                    {order.size ? ` · ${order.size}` : ""}
-                    {order.quantity > 1 ? ` · x${order.quantity}` : ""}
-                  </p>
-                  <p className="flex items-center gap-2 text-xs text-secondary">
+                <span className={cn("h-9 w-1 shrink-0 rounded-full", style.dot)} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <CategoryBadge label={order.model} />
+                    <span className="text-sm text-secondary">
+                      {[order.color, order.size, order.quantity > 1 ? `x${order.quantity}` : null]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </div>
+                  <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-secondary">
                     {formatDate(order.date)}
-                    {order.orderNumber ? ` · #${order.orderNumber}` : ""}
+                    {order.orderNumber ? ` · ${formatOrderRef(order.orderNumber)}` : ""}
                     <StatusBadge status={order.status} />
                   </p>
                 </div>
@@ -310,7 +328,8 @@ export function OrdersView({
                   </form>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </Card>

@@ -112,3 +112,9 @@ export async function importExpensesAction(
   revalidateAfterChange();
   return { imported: rows.length, skipped };
 }
+
+export async function deleteAllExpensesAction() {
+  const { userId } = await requireUser();
+  await prisma.expense.deleteMany({ where: { userId } });
+  revalidateAfterChange();
+}

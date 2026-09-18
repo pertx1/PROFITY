@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { buildBuckets } from "@/lib/date-range";
 
 export async function getFinancialSummary(userId: string) {
   const startOfMonth = new Date();
@@ -104,6 +105,36 @@ export async function getMonthlySeries(userId: string, months = 6) {
   for (const o of orders) {
     const key = `${o.date.getFullYear()}-${o.date.getMonth()}`;
     const idx = bucketIndex.get(key);
+    if (idx !== undefined) buckets[idx].ingresos += o.price;
+  }
+
+  return buckets;
+}
+
+export async function getSeriesForRange(userId: string, start: Date, end: Date) {
+  const { buckets, bucketIndex, bucketOf } = buildBuckets(start, end);
+
+  const [expenses, orders] = await Promise.all([
+    prisma.expense.findMany({
+      where: { userId, date: { gte: start, lte: end } },
+      select: { date: true, amount: true },
+    }),
+    prisma.order.findMany({
+      where: {
+        userId,
+        date: { gte: start, lte: end },
+        status: { not: "CANCELADO" },
+      },
+      select: { date: true, price: true },
+    }),
+  ]);
+
+  for (const e of expenses) {
+    const idx = bucketIndex.get(bucketOf(e.date));
+    if (idx !== undefined) buckets[idx].gastos += e.amount;
+  }
+  for (const o of orders) {
+    const idx = bucketIndex.get(bucketOf(o.date));
     if (idx !== undefined) buckets[idx].ingresos += o.price;
   }
 

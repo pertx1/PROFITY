@@ -50,7 +50,7 @@ model Order {
   id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderNumber Int?
+  orderNumber String?
   date        DateTime    @default(now())
   quantity    Int         @default(1)
   model       String
