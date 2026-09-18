@@ -91,8 +91,8 @@ export function OrdersView({
             </h2>
             <p className="mt-0.5 text-xs text-secondary">
               Si el modelo es Blanca/Negra/Fútbol o un diseño DTF, y rellenas
-              color y talla, cuenta en Stock mientras el pedido no esté
-              cancelado (aunque esté &quot;sin hacer&quot;).
+              color y talla, resta en Stock mientras esté &quot;Sin
+              hacer&quot; o &quot;Sin llegar&quot;.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

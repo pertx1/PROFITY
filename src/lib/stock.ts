@@ -31,16 +31,21 @@ export async function ensureStockRows(userId: string) {
   ]);
 }
 
+// Solo los pedidos que todavía necesitan camiseta/DTF físicamente restan
+// stock: sin hacer (falta producirlo) y sin llegar (pedido pero no ha
+// llegado). En casa, en paquete y enviado ya se hicieron con stock que se
+// descontó en su momento a mano, y cancelado no consume nada.
+const STATUSES_THAT_CONSUME_STOCK: ("SIN_HACER" | "SIN_LLEGAR")[] = ["SIN_HACER", "SIN_LLEGAR"];
+
 /**
- * Cuánto stock reservan ahora mismo los pedidos activos (todos menos los
- * cancelados), comparando el modelo/color/talla de cada pedido con el
- * catálogo de camisetas y DTF. Esto es lo único que resta stock: un pedido
- * "sin hacer" ya cuenta, tanto si lo acabas de añadir como si llevaba tiempo
- * ahí.
+ * Cuánto stock reservan ahora mismo los pedidos pendientes (sin hacer o sin
+ * llegar), comparando el modelo/color/talla de cada pedido con el catálogo
+ * de camisetas y DTF. Esto es lo único que resta stock: un pedido "sin
+ * hacer" ya cuenta, tanto si lo acabas de añadir como si llevaba tiempo ahí.
  */
 async function getOrderDemand(userId: string) {
   const orders = await prisma.order.findMany({
-    where: { userId, status: { not: "CANCELADO" } },
+    where: { userId, status: { in: STATUSES_THAT_CONSUME_STOCK } },
     select: { model: true, color: true, size: true, quantity: true },
   });
 

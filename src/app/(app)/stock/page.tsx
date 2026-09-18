@@ -54,11 +54,13 @@ export default async function StockPage() {
         <div>
           <h2 className="text-sm font-semibold">Esto se descuenta solo</h2>
           <p className="mt-1 text-sm text-secondary">
-            Cada pedido que no esté cancelado resta su camiseta (y su DTF, si el
-            modelo es un diseño) de aquí abajo. No hace falta registrar nada
-            aparte: se compara directamente con tu página de Pedidos. Usa los
-            botones −/+ de cada talla o diseño solo para decir cuánto tienes
-            hecho o comprado.
+            Cada pedido en estado &quot;Sin hacer&quot; o &quot;Sin llegar&quot;
+            resta su camiseta (y su DTF, si el modelo es un diseño) de aquí
+            abajo. En casa, en paquete, enviado y cancelado no restan, porque
+            ese stock ya se descontó a mano cuando lo hiciste. No hace falta
+            registrar nada aparte: se compara directamente con tu página de
+            Pedidos. Usa los botones −/+ de cada talla o diseño para decir
+            cuánto tienes hecho o comprado.
           </p>
         </div>
       </Card>
