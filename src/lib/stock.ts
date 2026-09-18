@@ -9,6 +9,7 @@ import {
   TSHIRT_SIZES,
   isStandaloneDesign,
   pairedVariantForModel,
+  resolveOrderStockEffect,
   type DtfVariant,
   type TshirtModel,
 } from "@/lib/stock-catalog";
@@ -122,5 +123,44 @@ export async function registerProduction(
       update: { quantity: { decrement: quantity } },
       create: { userId, name: designName, variant, quantity: -quantity },
     });
+  });
+}
+
+/**
+ * Descuenta (o repone) el stock que corresponde a un pedido, a partir de su
+ * modelo/color/talla. `direction: "consume"` se usa al crear un pedido o al
+ * aplicar sus valores nuevos en una edición; `"restore"` al borrar un pedido
+ * o al deshacer sus valores antiguos antes de aplicar los nuevos.
+ */
+export async function applyOrderStockEffect(
+  userId: string,
+  order: { model: string; color?: string | null; size?: string | null; quantity: number },
+  direction: "consume" | "restore",
+) {
+  const effect = resolveOrderStockEffect(order);
+  if (!effect.tshirt && !effect.dtf) return;
+
+  const sign = direction === "consume" ? -1 : 1;
+  const delta = order.quantity * sign;
+
+  await prisma.$transaction(async (tx) => {
+    if (effect.tshirt) {
+      await tx.tshirtStock.upsert({
+        where: {
+          userId_model_size: { userId, model: effect.tshirt.model, size: effect.tshirt.size },
+        },
+        update: { quantity: { increment: delta } },
+        create: { userId, model: effect.tshirt.model, size: effect.tshirt.size, quantity: delta },
+      });
+    }
+    if (effect.dtf) {
+      await tx.dtfStock.upsert({
+        where: {
+          userId_name_variant: { userId, name: effect.dtf.name, variant: effect.dtf.variant },
+        },
+        update: { quantity: { increment: delta } },
+        create: { userId, name: effect.dtf.name, variant: effect.dtf.variant, quantity: delta },
+      });
+    }
   });
 }

@@ -52,3 +52,75 @@ export function availableDesignsForModel(model: TshirtModel | ""): string[] {
   if (pairedVariantForModel(model)) return ALL_DTF_DESIGNS;
   return STANDALONE_DTF_DESIGNS;
 }
+
+function normalizeStockText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .trim()
+    .toUpperCase();
+}
+
+/** Reconoce "Blanca"/"Blanco"/"Negra"/"Negro"/"Fútbol"… venga de donde venga (modelo o color de un pedido). */
+export function resolveShirtModel(value: string | null | undefined): TshirtModel | null {
+  if (!value) return null;
+  const n = normalizeStockText(value);
+  if (n === "BLANCA" || n === "BLANCO" || n === "WHITE") return "BLANCA";
+  if (n === "NEGRA" || n === "NEGRO" || n === "BLACK") return "NEGRA";
+  if (n.includes("FUTBOL")) return "FUTBOL";
+  return null;
+}
+
+export function resolveTshirtSize(value: string | null | undefined): TshirtSize | null {
+  if (!value) return null;
+  const n = normalizeStockText(value);
+  return (TSHIRT_SIZES as readonly string[]).includes(n) ? (n as TshirtSize) : null;
+}
+
+export function resolveDtfDesign(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const n = normalizeStockText(value);
+  return ALL_DTF_DESIGNS.find((design) => normalizeStockText(design) === n) ?? null;
+}
+
+export type OrderStockEffect = {
+  tshirt?: { model: TshirtModel; size: TshirtSize };
+  dtf?: { name: string; variant: DtfVariant };
+};
+
+/**
+ * A partir del modelo/color/talla escritos en un pedido, decide qué hay que
+ * descontar del stock: una camiseta blanca/negra/fútbol en una talla, y si el
+ * "modelo" es en realidad un diseño DTF, también el DTF correspondiente
+ * (variante blanco/negro según el color de la camiseta, o única si el
+ * diseño no depende del color).
+ */
+export function resolveOrderStockEffect(order: {
+  model: string;
+  color?: string | null;
+  size?: string | null;
+}): OrderStockEffect {
+  const effect: OrderStockEffect = {};
+  const size = resolveTshirtSize(order.size);
+
+  const design = resolveDtfDesign(order.model);
+  if (design) {
+    const shirtModel = resolveShirtModel(order.color);
+    if (shirtModel && size) {
+      effect.tshirt = { model: shirtModel, size };
+    }
+    if (isStandaloneDesign(design)) {
+      effect.dtf = { name: design, variant: "UNICO" };
+    } else if (shirtModel) {
+      const variant = pairedVariantForModel(shirtModel);
+      if (variant) effect.dtf = { name: design, variant };
+    }
+    return effect;
+  }
+
+  const shirtModel = resolveShirtModel(order.model) ?? resolveShirtModel(order.color);
+  if (shirtModel && size) {
+    effect.tshirt = { model: shirtModel, size };
+  }
+  return effect;
+}

@@ -85,9 +85,15 @@ export function OrdersView({
     <div className="flex flex-col gap-6">
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-base font-semibold">
-            {editing ? "Editar pedido" : "Nuevo pedido"}
-          </h2>
+          <div>
+            <h2 className="text-base font-semibold">
+              {editing ? "Editar pedido" : "Nuevo pedido"}
+            </h2>
+            <p className="mt-0.5 text-xs text-secondary">
+              Si el modelo es Blanca/Negra/Fútbol o un diseño DTF, y rellenas
+              color y talla, el stock se descuenta solo.
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <ImportButton action={importOrdersAction} label="Importar pedidos" />
             {orders.length > 0 && (

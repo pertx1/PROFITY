@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  ALL_DTF_DESIGNS,
+  TSHIRT_MODEL_LABELS,
+  TSHIRT_MODELS,
+  TSHIRT_SIZES,
+} from "@/lib/stock-catalog";
 import { OrdersView } from "./OrdersView";
 
 export const metadata: Metadata = { title: "Pedidos · PROFITY" };
 
-const DEFAULT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+const DEFAULT_SIZES = [...TSHIRT_SIZES, "XS"];
 const DEFAULT_COLORS = ["BLANCO", "NEGRO"];
+const DEFAULT_MODELS = [
+  ...TSHIRT_MODELS.map((m) => TSHIRT_MODEL_LABELS[m]),
+  ...ALL_DTF_DESIGNS,
+];
 
 export default async function PedidosPage() {
   const { userId } = await requireUser();
@@ -30,9 +40,9 @@ export default async function PedidosPage() {
     }),
   ]);
 
-  const models = Array.from(new Set(modelRows.map((r) => r.model))).sort((a, b) =>
-    a.localeCompare(b, "es"),
-  );
+  const models = Array.from(
+    new Set([...DEFAULT_MODELS, ...modelRows.map((r) => r.model)]),
+  ).sort((a, b) => a.localeCompare(b, "es"));
   const colors = Array.from(
     new Set([...DEFAULT_COLORS, ...colorRows.map((r) => r.color).filter((c): c is string => !!c)]),
   ).sort((a, b) => a.localeCompare(b, "es"));
