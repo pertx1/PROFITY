@@ -291,9 +291,15 @@ export function OrdersView({
                 key={order.id}
                 className="flex items-center gap-3 px-5 py-3"
               >
-                <span className={cn("h-9 w-1 shrink-0 rounded-full", style.dot)} />
+                <span className={cn("h-10 w-1 shrink-0 rounded-full", style.dot)} />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="truncate text-base font-semibold">
+                      {order.orderNumber ? formatOrderRef(order.orderNumber) : order.model}
+                    </span>
+                    <StatusBadge status={order.status} />
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <CategoryBadge label={order.model} />
                     <span className="text-sm text-secondary">
                       {[order.color, order.size, order.quantity > 1 ? `x${order.quantity}` : null]
@@ -301,11 +307,7 @@ export function OrdersView({
                         .join(" · ")}
                     </span>
                   </div>
-                  <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-secondary">
-                    {formatDate(order.date)}
-                    {order.orderNumber ? ` · ${formatOrderRef(order.orderNumber)}` : ""}
-                    <StatusBadge status={order.status} />
-                  </p>
+                  <p className="mt-1 text-xs text-secondary">{formatDate(order.date)}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <span className="mr-2 text-sm font-semibold text-success">

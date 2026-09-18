@@ -7,7 +7,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
 import { IconScale, IconTrendDown, IconTrendUp } from "@/components/nav/icons";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, formatOrderRef } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Beneficio · PROFITY" };
 
@@ -107,7 +107,10 @@ export default async function DashboardPage() {
             {recent.orders.map((order) => (
               <li key={order.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <p className="truncate text-sm font-semibold">
+                    {order.orderNumber ? formatOrderRef(order.orderNumber) : order.model}
+                  </p>
+                  <div className="mt-1 flex items-center gap-1.5">
                     <CategoryBadge label={order.model} />
                     {order.size && (
                       <span className="text-xs text-secondary">{order.size}</span>
