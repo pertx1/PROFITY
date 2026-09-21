@@ -22,38 +22,65 @@ model User {
   incomes      Income[]
   tshirtStocks TshirtStock[]
   dtfStocks    DtfStock[]
+  vintedItems  VintedItem[]
 }
 
 model Expense {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   date          DateTime
   category      String
   concept       String?
   amount        Float
   paymentMethod String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  vintedItem    VintedItem?
 
   @@index([userId, date])
   @@index([userId, category])
 }
 
 model Income {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime
   source      String
   concept     String?
   amount      Float
   method      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  vintedItem  VintedItem?
 
   @@index([userId, date])
   @@index([userId, source])
+}
+
+enum VintedType {
+  COMPRA
+  VENTA
+}
+
+model VintedItem {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VintedType
+  name      String
+  size      String?
+  price     Float
+  date      DateTime
+  expenseId String?    @unique
+  expense   Expense?   @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  incomeId  String?    @unique
+  income    Income?    @relation(fields: [incomeId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId, type])
 }
 
 enum OrderStatus {

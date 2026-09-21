@@ -97,3 +97,21 @@ export const dtfAdjustSchema = stockAdjustSchema.extend({
   name: z.string().trim().min(1).max(60),
   variant: z.enum(dtfVariantValues),
 });
+
+export const vintedTypeValues = ["COMPRA", "VENTA"] as const;
+
+export const vintedItemSchema = z.object({
+  id: z.string().min(1).optional(),
+  type: z.enum(vintedTypeValues),
+  date: z.iso.date("Fecha inválida"),
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(80),
+  size: z
+    .string()
+    .trim()
+    .max(20)
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  price: z.coerce.number().positive("El precio debe ser mayor que 0"),
+});
+
+export type VintedItemInput = z.infer<typeof vintedItemSchema>;
