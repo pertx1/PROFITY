@@ -143,6 +143,24 @@ export function IconAlert(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function IconGoat(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M9 8.5C7.5 6.5 7.8 3 9.8 1" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 8.5c1.5-2 1.2-5.5-.8-7.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M7.5 9.5c0-2.2 2-4 4.5-4s4.5 1.8 4.5 4c0 3.2-1.5 6.3-2.5 7.8-.6.9-1.1 1.5-2 1.5s-1.4-.6-2-1.5c-1-1.5-2.5-4.6-2.5-7.8Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M7.5 10 4.5 8.8M16.5 10l3-1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="10.3" cy="10.3" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="13.7" cy="10.3" r="0.6" fill="currentColor" stroke="none" />
+      <path d="M11 18c.3 1.1.7 2 1 2.5.3-.5.7-1.4 1-2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconScale(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
