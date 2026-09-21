@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStockOverview } from "@/lib/stock";
 import { Card } from "@/components/ui/Card";
-import { IconBox, IconGoat, IconLayers, IconReceipt, IconTrendUp } from "@/components/nav/icons";
+import { IconBox, IconGoat, IconLayers, IconReceipt } from "@/components/nav/icons";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
@@ -15,11 +15,10 @@ const PENDING_STATUSES = ["SIN_HACER", "SIN_LLEGAR"] as const;
 export default async function AkerraPage() {
   const { userId } = await requireUser();
 
-  const [orderCount, pendingOrders, expenseAgg, incomeAgg, stock] = await Promise.all([
+  const [orderCount, pendingOrders, expenseAgg, stock] = await Promise.all([
     prisma.order.count({ where: { userId } }),
     prisma.order.count({ where: { userId, status: { in: [...PENDING_STATUSES] } } }),
     prisma.expense.aggregate({ where: { userId }, _sum: { amount: true }, _count: true }),
-    prisma.income.aggregate({ where: { userId }, _sum: { amount: true }, _count: true }),
     getStockOverview(userId),
   ]);
 
@@ -39,13 +38,6 @@ export default async function AkerraPage() {
       icon: IconReceipt,
       value: formatCurrency(expenseAgg._sum.amount ?? 0),
       hint: `${expenseAgg._count} apunte${expenseAgg._count === 1 ? "" : "s"}`,
-    },
-    {
-      href: "/ingresos",
-      label: "Ingresos",
-      icon: IconTrendUp,
-      value: formatCurrency(incomeAgg._sum.amount ?? 0),
-      hint: `${incomeAgg._count} apunte${incomeAgg._count === 1 ? "" : "s"}`,
     },
     {
       href: "/stock",
@@ -69,12 +61,12 @@ export default async function AkerraPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Akerra</h1>
           <p className="mt-1 text-sm text-secondary">
-            Tu negocio de un vistazo: pedidos, gastos, ingresos y stock.
+            Tu negocio de un vistazo: pedidos, gastos y stock.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {tiles.map(({ href, label, icon: Icon, value, hint, warn }) => (
           <Link key={href} href={href} className="block aspect-square">
             <Card
