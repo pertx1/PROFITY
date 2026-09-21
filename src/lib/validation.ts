@@ -115,3 +115,11 @@ export const vintedItemSchema = z.object({
 });
 
 export type VintedItemInput = z.infer<typeof vintedItemSchema>;
+
+export const invoiceSchema = z.object({
+  id: z.string().min(1).optional(),
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(80),
+  url: z.url("Introduce un enlace válido (https://…)").max(2000),
+});
+
+export type InvoiceInput = z.infer<typeof invoiceSchema>;

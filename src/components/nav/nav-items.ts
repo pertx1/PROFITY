@@ -2,13 +2,13 @@ import {
   IconChart,
   IconGoat,
   IconHome,
+  IconInvoice,
   IconTag,
-  IconTrendUp,
 } from "./icons";
 
 export const navItems = [
   { href: "/", label: "Beneficio", icon: IconHome },
-  { href: "/ingresos", label: "Ingresos", icon: IconTrendUp },
+  { href: "/facturas", label: "Facturas", icon: IconInvoice },
   { href: "/akerra", label: "Akerra", icon: IconGoat },
   { href: "/vinted", label: "Vinted", icon: IconTag },
   { href: "/estadisticas", label: "Estadísticas", icon: IconChart },

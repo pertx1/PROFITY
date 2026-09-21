@@ -174,6 +174,33 @@ export function IconTag(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function IconExternalLink(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path
+        d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M14 4h6v6M20 4 11 13" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconInvoice(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path
+        d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M15 3v5h5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.5 12.5h7M8.5 16h4.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconScale(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>

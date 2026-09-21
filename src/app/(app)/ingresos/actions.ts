@@ -9,6 +9,7 @@ export type IncomeFormState = { error?: string };
 
 function revalidateAfterChange() {
   revalidatePath("/ingresos");
+  revalidatePath("/akerra");
   revalidatePath("/");
   revalidatePath("/estadisticas");
 }
