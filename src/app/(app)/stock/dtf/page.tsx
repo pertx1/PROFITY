@@ -24,7 +24,7 @@ export default async function DtfStockPage() {
           <IconChevronRight className="h-4 w-4 rotate-180" />
           Stock
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">DTF</h1>
+        <h1 className="mt-2 text-[34px] font-bold leading-[41px] tracking-tight">DTF</h1>
         <p className="mt-1 text-sm text-secondary">
           Diseños individuales y diseños con versión blanco/negro según la camiseta.
         </p>

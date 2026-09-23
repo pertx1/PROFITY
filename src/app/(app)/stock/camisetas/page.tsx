@@ -26,7 +26,7 @@ export default async function CamisetasStockPage() {
           <IconChevronRight className="h-4 w-4 rotate-180" />
           Stock
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Camisetas</h1>
+        <h1 className="mt-2 text-[34px] font-bold leading-[41px] tracking-tight">Camisetas</h1>
         <p className="mt-1 text-sm text-secondary">
           Blancas, negras y de fútbol, por talla. Añade o quita unidades directamente.
         </p>

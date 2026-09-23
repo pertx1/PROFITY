@@ -2,11 +2,13 @@ import type { ComponentType, SVGProps } from "react";
 import { Card } from "./Card";
 import { cn } from "@/lib/cn";
 
+// Squircles sólidas con icono blanco, como los badges de Ajustes/Salud en
+// iOS, en vez de un círculo pastel.
 const iconTones = {
-  blue: "bg-blue-500/12 text-blue-600 dark:text-blue-400",
-  red: "bg-danger/12 text-danger",
-  green: "bg-success/12 text-success",
-  violet: "bg-violet-500/12 text-violet-600 dark:text-violet-400",
+  blue: "bg-accent",
+  red: "bg-danger",
+  green: "bg-success",
+  violet: "bg-[#af52de] dark:bg-[#bf5af2]",
 } as const;
 
 export function StatCard({
@@ -31,7 +33,7 @@ export function StatCard({
         {Icon && (
           <span
             className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] text-white shadow-sm",
               iconTones[iconTone],
             )}
           >

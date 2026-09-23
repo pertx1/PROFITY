@@ -57,7 +57,7 @@ export default async function ChartDetailPage({
           <IconChevronRight className="h-3.5 w-3.5 rotate-180" />
           Estadísticas
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{def.title}</h1>
+        <h1 className="mt-2 text-[34px] font-bold leading-[41px] tracking-tight">{def.title}</h1>
         <p className="mt-1 text-sm text-secondary">{def.subtitle}</p>
       </div>
 

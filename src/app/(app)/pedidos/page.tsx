@@ -53,7 +53,7 @@ export default async function PedidosPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Pedidos</h1>
+        <h1 className="text-[34px] font-bold leading-[41px] tracking-tight">Pedidos</h1>
         <p className="mt-1 text-sm text-secondary">
           Todo lo que vendes, con su estado.
         </p>

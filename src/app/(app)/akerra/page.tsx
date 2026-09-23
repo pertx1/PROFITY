@@ -24,6 +24,8 @@ export default async function AkerraPage() {
 
   const stockTotal = stock.tshirtTotal + stock.dtfTotal;
 
+  // Cada tarjeta lleva el color de sistema de Apple que mejor la distingue
+  // de un vistazo, como los iconos de Ajustes en iOS.
   const tiles = [
     {
       href: "/pedidos",
@@ -31,6 +33,7 @@ export default async function AkerraPage() {
       icon: IconBox,
       value: orderCount,
       hint: `${pendingOrders} pendiente${pendingOrders === 1 ? "" : "s"}`,
+      tone: "bg-accent",
     },
     {
       href: "/gastos",
@@ -38,6 +41,7 @@ export default async function AkerraPage() {
       icon: IconReceipt,
       value: formatCurrency(expenseAgg._sum.amount ?? 0),
       hint: `${expenseAgg._count} apunte${expenseAgg._count === 1 ? "" : "s"}`,
+      tone: "bg-[#ff9500] dark:bg-[#ff9f0a]",
     },
     {
       href: "/stock",
@@ -49,17 +53,18 @@ export default async function AkerraPage() {
           ? `${stock.needsOrder.length} por pedir`
           : "Todo al día",
       warn: stock.needsOrder.length > 0,
+      tone: "bg-[#af52de] dark:bg-[#bf5af2]",
     },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/12 text-accent">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[13px] bg-accent text-white shadow-sm">
           <IconGoat className="h-6 w-6" />
         </span>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Akerra</h1>
+          <h1 className="text-[34px] font-bold leading-[41px] tracking-tight">Akerra</h1>
           <p className="mt-1 text-sm text-secondary">
             Tu negocio de un vistazo: pedidos, gastos y stock.
           </p>
@@ -67,18 +72,18 @@ export default async function AkerraPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {tiles.map(({ href, label, icon: Icon, value, hint, warn }) => (
+        {tiles.map(({ href, label, icon: Icon, value, hint, warn, tone }) => (
           <Link key={href} href={href} className="block aspect-square">
             <Card
               className={cn(
-                "flex h-full flex-col justify-between p-4 transition-shadow hover:shadow-md",
+                "flex h-full flex-col justify-between p-4 transition-shadow duration-200 ease-spring hover:shadow-md",
                 warn && "border-danger/40 bg-danger/5",
               )}
             >
               <span
                 className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full",
-                  warn ? "bg-danger/15 text-danger" : "bg-accent/12 text-accent",
+                  "flex h-10 w-10 items-center justify-center rounded-[11px] text-white shadow-sm",
+                  warn ? "bg-danger" : tone,
                 )}
               >
                 <Icon className="h-5 w-5" />

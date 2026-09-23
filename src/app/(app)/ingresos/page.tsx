@@ -30,7 +30,7 @@ export default async function IngresosPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ingresos</h1>
+        <h1 className="text-[34px] font-bold leading-[41px] tracking-tight">Ingresos</h1>
         <p className="mt-1 text-sm text-secondary">
           Dinero que entra sin ser un pedido: otras ventas, subvenciones,
           reembolsos…

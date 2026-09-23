@@ -10,7 +10,7 @@ export function NeedsOrderPanel({
   if (items.length === 0) {
     return (
       <Card className="flex items-center gap-3 border-success/30 bg-success/5 p-5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-success text-white shadow-sm">
           <IconAlert className="h-5 w-5" />
         </span>
         <div>
@@ -26,7 +26,7 @@ export function NeedsOrderPanel({
   return (
     <Card className="border-danger/30 bg-danger/5 p-5">
       <div className="flex items-center gap-2">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-danger text-white shadow-sm">
           <IconAlert className="h-5 w-5" />
         </span>
         <div>

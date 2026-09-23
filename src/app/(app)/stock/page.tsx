@@ -39,7 +39,7 @@ export default async function StockPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Stock</h1>
+        <h1 className="text-[34px] font-bold leading-[41px] tracking-tight">Stock</h1>
         <p className="mt-1 text-sm text-secondary">
           Camisetas y DTF disponibles, siempre al día.
         </p>
@@ -48,7 +48,7 @@ export default async function StockPage() {
       <NeedsOrderPanel items={needsOrder} />
 
       <Card className="flex items-start gap-3 p-5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/12 text-accent">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-accent text-white shadow-sm">
           <IconBox className="h-5 w-5" />
         </span>
         <div>
