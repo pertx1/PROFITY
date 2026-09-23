@@ -23,7 +23,7 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors duration-200 ease-spring",
                 active
                   ? "bg-accent/10 text-accent"
                   : "text-secondary hover:bg-black/[.03] hover:text-foreground dark:hover:bg-white/[.06]",

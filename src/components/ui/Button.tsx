@@ -19,7 +19,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none",
+        "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition duration-200 ease-spring motion-safe:active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none",
         variants[variant],
         className,
       )}

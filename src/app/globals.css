@@ -42,8 +42,13 @@
   --color-danger: var(--danger);
   --color-success: var(--success);
   --color-warning: var(--warning);
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont,
-    "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* SF Pro first so Apple hardware renders real San Francisco; Inter only
+     stands in on platforms that don't ship it. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    var(--font-inter), "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Apple's characteristic decelerating spring curve, used for the same
+     interactive transitions iOS applies it to: taps, selection, sheets. */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 body {
@@ -51,6 +56,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 * {
@@ -71,4 +77,18 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* accessibility.md › Motion: motion is optional, never the only carrier of
+   meaning. Cuts every transition/animation in the app down to near-instant
+   when the system asks for reduced motion, instead of auditing each one. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
