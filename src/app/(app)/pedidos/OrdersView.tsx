@@ -58,7 +58,7 @@ function OrderStatusSelect({ order }: { order: Order }) {
         )}
       >
         {orderStatusValues.map((s) => (
-          <option key={s} value={s}>
+          <option key={s} value={s} style={{ backgroundColor: "#fff", color: "#000" }}>
             {orderStatusMeta[s].label}
           </option>
         ))}
