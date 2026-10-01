@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { orderSchema } from "@/lib/validation";
+import { orderSchema, orderStatusValues } from "@/lib/validation";
 import { parseOrdersFile } from "@/lib/import";
 
 export type OrderFormState = { error?: string };
@@ -65,6 +65,21 @@ export async function saveOrderAction(
 
   revalidateAfterChange();
   return {};
+}
+
+export async function updateOrderStatusAction(formData: FormData) {
+  const { userId } = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!id || !orderStatusValues.includes(status as (typeof orderStatusValues)[number])) {
+    return;
+  }
+
+  const existing = await prisma.order.findUnique({ where: { id } });
+  if (!existing || existing.userId !== userId) return;
+
+  await prisma.order.update({ where: { id }, data: { status: status as (typeof orderStatusValues)[number] } });
+  revalidateAfterChange();
 }
 
 export async function deleteOrderAction(formData: FormData) {

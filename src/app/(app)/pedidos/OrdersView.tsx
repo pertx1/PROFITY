@@ -7,7 +7,6 @@ import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { DeleteAllButton } from "@/components/ui/DeleteAllButton";
 import { FieldGroup, Input, Select } from "@/components/ui/Field";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ImportButton } from "@/components/ui/ImportButton";
 import { IconEdit, IconPlus, IconSearch } from "@/components/nav/icons";
 import { cn } from "@/lib/cn";
@@ -19,6 +18,7 @@ import {
   deleteOrderAction,
   importOrdersAction,
   saveOrderAction,
+  updateOrderStatusAction,
   type OrderFormState,
 } from "./actions";
 
@@ -35,6 +35,37 @@ type Order = {
 };
 
 const emptyState: OrderFormState = {};
+
+function OrderStatusSelect({ order }: { order: Order }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const meta = orderStatusMeta[order.status];
+
+  return (
+    <form ref={formRef} action={updateOrderStatusAction}>
+      <input type="hidden" name="id" value={order.id} />
+      <select
+        key={order.status}
+        name="status"
+        defaultValue={order.status}
+        onChange={(e) => {
+          e.currentTarget.form?.requestSubmit();
+        }}
+        aria-label="Estado del pedido"
+        className={cn(
+          "cursor-pointer rounded-full border-0 py-1 pl-2.5 pr-6 text-xs font-semibold outline-none",
+          meta.bg,
+          meta.text,
+        )}
+      >
+        {orderStatusValues.map((s) => (
+          <option key={s} value={s}>
+            {orderStatusMeta[s].label}
+          </option>
+        ))}
+      </select>
+    </form>
+  );
+}
 
 export function OrdersView({
   orders,
@@ -304,7 +335,7 @@ export function OrdersView({
                     <span className="truncate text-base font-semibold">
                       {order.orderNumber ? formatOrderRef(order.orderNumber) : order.model}
                     </span>
-                    <StatusBadge status={order.status} />
+                    <OrderStatusSelect order={order} />
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <CategoryBadge label={order.model} />
