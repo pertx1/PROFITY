@@ -59,7 +59,7 @@ export default async function DtfStockPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <StockCell
                   label="DTF blanco"
-                  sublabel="para camiseta negra"
+                  sublabel="para camiseta o sudadera negra"
                   quantity={blanco?.quantity ?? 0}
                   action={adjustDtfStockAction}
                   hidden={{ name, variant: "BLANCO" }}

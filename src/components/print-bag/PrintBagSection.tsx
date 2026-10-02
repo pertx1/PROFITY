@@ -117,7 +117,7 @@ function BagLineItem({
         <p className="ml-14 flex items-start gap-1.5 text-xs text-[#a15c00] dark:text-warning">
           <IconAlert className="mt-px h-3.5 w-3.5 shrink-0" />
           <span>
-            No hay regla de DTF para camiseta {line.missingRuleFor}.{" "}
+            No hay regla de DTF para {line.missingRuleFor}.{" "}
             <Link href="/ajustes" className="font-semibold text-accent">
               Añadir regla
             </Link>
@@ -317,8 +317,8 @@ export function PrintBagSection({
           )}
 
           <BagBlock
-            title="👕 Camisetas lisas"
-            totalLabel={`${sumQuantity(lines.shirts)} ${sumQuantity(lines.shirts) === 1 ? "camiseta" : "camisetas"}`}
+            title="👕 Camisetas y sudaderas"
+            totalLabel={`${sumQuantity(lines.shirts)} ${sumQuantity(lines.shirts) === 1 ? "prenda" : "prendas"}`}
             lines={lines.shirts}
             onToggle={toggle}
           />

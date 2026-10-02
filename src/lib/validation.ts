@@ -80,7 +80,7 @@ export const incomeSchema = z.object({
 
 export type IncomeInput = z.infer<typeof incomeSchema>;
 
-export const tshirtModelValues = ["BLANCA", "NEGRA", "FUTBOL"] as const;
+export const tshirtModelValues = ["BLANCA", "NEGRA", "FUTBOL", "SUDADERA_NEGRA"] as const;
 export const dtfVariantValues = ["UNICO", "BLANCO", "NEGRO"] as const;
 
 export const stockAdjustSchema = z.object({

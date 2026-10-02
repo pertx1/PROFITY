@@ -4,14 +4,20 @@
 export const TSHIRT_SIZES = ["S", "M", "L", "XL", "XXL"] as const;
 export type TshirtSize = (typeof TSHIRT_SIZES)[number];
 
-export type TshirtModel = "BLANCA" | "NEGRA" | "FUTBOL";
-export const TSHIRT_MODELS: TshirtModel[] = ["BLANCA", "NEGRA", "FUTBOL"];
+export type TshirtModel = "BLANCA" | "NEGRA" | "FUTBOL" | "SUDADERA_NEGRA";
+export const TSHIRT_MODELS: TshirtModel[] = ["BLANCA", "NEGRA", "FUTBOL", "SUDADERA_NEGRA"];
 
 export const TSHIRT_MODEL_LABELS: Record<TshirtModel, string> = {
   BLANCA: "Blanca",
   NEGRA: "Negra",
   FUTBOL: "Fútbol",
+  SUDADERA_NEGRA: "Sudadera negra",
 };
+
+/** Nombre de la prenda para mostrar: "Camiseta blanca", "Sudadera negra"… */
+export function garmentLabel(model: TshirtModel) {
+  return model === "SUDADERA_NEGRA" ? "Sudadera negra" : `Camiseta ${TSHIRT_MODEL_LABELS[model].toLowerCase()}`;
+}
 
 export type DtfVariant = "UNICO" | "BLANCO" | "NEGRO";
 
@@ -25,19 +31,20 @@ export const PAIRED_DTF_DESIGNS = [
   "Flysch",
   "Ujue",
   "Haizearen orrazia",
+  "Eguzkilore",
 ];
 
 export const ALL_DTF_DESIGNS = [...STANDALONE_DTF_DESIGNS, ...PAIRED_DTF_DESIGNS];
 
 export const DTF_VARIANT_LABELS: Record<DtfVariant, string> = {
   UNICO: "",
-  BLANCO: "DTF blanco · para camiseta negra",
+  BLANCO: "DTF blanco · para camiseta o sudadera negra",
   NEGRO: "DTF negro · para camiseta blanca",
 };
 
 /** Variante de DTF que se descuenta al estampar un diseño emparejado sobre un modelo de camiseta. */
 export function pairedVariantForModel(model: TshirtModel): DtfVariant | null {
-  if (model === "NEGRA") return "BLANCO";
+  if (model === "NEGRA" || model === "SUDADERA_NEGRA") return "BLANCO";
   if (model === "BLANCA") return "NEGRO";
   return null;
 }
@@ -58,6 +65,7 @@ function normalizeStockText(value: string) {
 export function resolveShirtModel(value: string | null | undefined): TshirtModel | null {
   if (!value) return null;
   const n = normalizeStockText(value);
+  if (n.includes("SUDADERA")) return "SUDADERA_NEGRA";
   if (n === "BLANCA" || n === "BLANCO" || n === "WHITE") return "BLANCA";
   if (n === "NEGRA" || n === "NEGRO" || n === "BLACK") return "NEGRA";
   if (n.includes("FUTBOL")) return "FUTBOL";

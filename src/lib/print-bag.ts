@@ -93,7 +93,16 @@ function dtfColorLabel(value: string) {
     .join(" ");
 }
 
+/** "blanca" → "camiseta blanca"; "sudadera negra" → "sudadera negra". */
+function garmentName(colorLabel: string) {
+  return colorLabel.startsWith("sudadera") ? colorLabel : `camiseta ${colorLabel}`;
+}
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 const DEFAULT_DTF_BY_SHIRT: Record<string, string> = {
+  [colorKey("sudadera negra")]: "blanco",
+  [colorKey("sudadera")]: "blanco",
   [colorKey("blanca")]: "negro",
   [colorKey("white")]: "negro",
   [colorKey("negra")]: "blanco",
@@ -213,7 +222,7 @@ export function buildPrintBag(orders: BagOrder[], rules: BagRules): PrintBag {
         const key = `dtf|${normalizeText(design)}|?|${colorKey(shirtColor)}`;
         addToGroup(
           dtfGroups,
-          { key, kind: "dtf", design, dtfColor: null, missingRuleFor: label },
+          { key, kind: "dtf", design, dtfColor: null, missingRuleFor: garmentName(label) },
           order,
           shirtColor,
         );
@@ -235,7 +244,7 @@ export function buildPrintBag(orders: BagOrder[], rules: BagRules): PrintBag {
     .map<BagLine>((g) => ({
       key: g.key,
       kind: "shirt",
-      label: `Camiseta ${shirtColorLabel(g.color!)} ${g.size}`,
+      label: `${capitalize(garmentName(shirtColorLabel(g.color!)))} ${g.size}`,
       quantity: g.quantity,
       sources: g.sources,
     }));
@@ -248,7 +257,7 @@ export function buildPrintBag(orders: BagOrder[], rules: BagRules): PrintBag {
     )
     .map<BagLine>((g) => {
       const forShirts = g.shirtColors.length
-        ? ` (para camiseta ${g.shirtColors.join(" / ")})`
+        ? ` (para ${g.shirtColors.map(garmentName).join(" / ")})`
         : "";
       const color = g.unique ? "" : g.dtfColor ? ` ${g.dtfColor}` : " · color sin definir";
       return {
@@ -276,7 +285,7 @@ export function printBagToText(bag: Pick<PrintBag, "shirts" | "dtfs">) {
     lines.map((l) => `- ${l.quantity} × ${l.label}`).join("\n");
   const parts = ["🎒 Bolsa para la imprenta"];
   if (bag.shirts.length) {
-    parts.push(`\nCamisetas (${total(bag.shirts)}):\n${block(bag.shirts)}`);
+    parts.push(`\nCamisetas y sudaderas (${total(bag.shirts)}):\n${block(bag.shirts)}`);
   }
   if (bag.dtfs.length) {
     parts.push(`\nDTF (${total(bag.dtfs)}):\n${block(bag.dtfs)}`);

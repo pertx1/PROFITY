@@ -155,6 +155,7 @@ enum TshirtModel {
   BLANCA
   NEGRA
   FUTBOL
+  SUDADERA_NEGRA
 }
 
 enum DtfVariant {

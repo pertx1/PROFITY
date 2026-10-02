@@ -5,7 +5,7 @@ import {
   PAIRED_DTF_DESIGNS,
   STANDALONE_DTF_DESIGNS,
   TSHIRT_MODELS,
-  TSHIRT_MODEL_LABELS,
+  garmentLabel,
   TSHIRT_SIZES,
   resolveOrderStockEffect,
   type DtfVariant,
@@ -84,10 +84,20 @@ export async function getStockOverview(userId: string) {
 
   // La cantidad "de verdad" es lo que tienes hecho/comprado menos lo que
   // piden tus pedidos activos ahora mismo. Puede ser negativa.
-  const tshirtStocks = tshirtRows.map((s) => ({
-    ...s,
-    quantity: s.quantity - (tshirtDemand.get(`${s.model}_${s.size}`) ?? 0),
-  }));
+  const sizeRank = (size: string) => {
+    const index = (TSHIRT_SIZES as readonly string[]).indexOf(size);
+    return index === -1 ? TSHIRT_SIZES.length : index;
+  };
+  const tshirtStocks = tshirtRows
+    .map((s) => ({
+      ...s,
+      quantity: s.quantity - (tshirtDemand.get(`${s.model}_${s.size}`) ?? 0),
+    }))
+    .sort(
+      (a, b) =>
+        TSHIRT_MODELS.indexOf(a.model as TshirtModel) - TSHIRT_MODELS.indexOf(b.model as TshirtModel) ||
+        sizeRank(a.size) - sizeRank(b.size),
+    );
   const dtfStocks = dtfRows.map((s) => ({
     ...s,
     quantity: s.quantity - (dtfDemand.get(`${s.name}_${s.variant}`) ?? 0),
@@ -98,7 +108,7 @@ export async function getStockOverview(userId: string) {
       .filter((s) => s.quantity <= 0)
       .map((s) => ({
         key: `tshirt-${s.model}-${s.size}`,
-        label: `Camiseta ${TSHIRT_MODEL_LABELS[s.model as TshirtModel]} · talla ${s.size}`,
+        label: `${garmentLabel(s.model as TshirtModel)} · talla ${s.size}`,
         quantity: s.quantity,
       })),
     ...dtfStocks

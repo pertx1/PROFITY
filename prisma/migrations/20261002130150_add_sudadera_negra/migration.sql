@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "TshirtModel" ADD VALUE 'SUDADERA_NEGRA';

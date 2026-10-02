@@ -12,7 +12,7 @@ import { OrdersView } from "./OrdersView";
 export const metadata: Metadata = { title: "Pedidos · PROFITY" };
 
 const DEFAULT_SIZES = [...TSHIRT_SIZES, "XS"];
-const DEFAULT_COLORS = ["BLANCO", "NEGRO"];
+const DEFAULT_COLORS = ["BLANCO", "NEGRO", "SUDADERA NEGRA"];
 const DEFAULT_MODELS = [
   ...TSHIRT_MODELS.map((m) => TSHIRT_MODEL_LABELS[m]),
   ...ALL_DTF_DESIGNS,

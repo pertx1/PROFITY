@@ -70,14 +70,14 @@ export default async function StockPage() {
           <Card className="p-5 transition-shadow hover:shadow-md">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold">Camisetas en stock</h2>
+                <h2 className="text-base font-semibold">Camisetas y sudaderas en stock</h2>
                 <p className="mt-1 text-sm text-secondary">
                   {tshirtTotal} {tshirtTotal === 1 ? "unidad" : "unidades"} en total
                 </p>
               </div>
               <IconChevronRight className="h-4 w-4 shrink-0 text-secondary" />
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {tshirtByModel.map(({ model, total, low }: { model: TshirtModel; total: number; low: boolean }) => (
                 <div
                   key={model}
