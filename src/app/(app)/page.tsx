@@ -19,7 +19,11 @@ export default async function DashboardPage() {
     getFinancialSummary(userId),
     getMonthlySeries(userId),
     getRecentActivity(userId),
-    getPrintBag(userId),
+    // Si falta aplicar en Neon la migración de la bolsa, no rompemos toda la página.
+    getPrintBag(userId).catch((error) => {
+      console.error("getPrintBag", error);
+      return null;
+    }),
   ]);
 
   return (
@@ -136,12 +140,23 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <PrintBagSection
-        pendingOrders={bag.pendingOrders}
-        shirts={bag.shirts}
-        dtfs={bag.dtfs}
-        warnings={bag.warnings}
-      />
+      {bag ? (
+        <PrintBagSection
+          pendingOrders={bag.pendingOrders}
+          shirts={bag.shirts}
+          dtfs={bag.dtfs}
+          warnings={bag.warnings}
+        />
+      ) : (
+        <Card className="border-warning/40 bg-warning/10 p-5">
+          <h2 className="text-[22px] font-bold tracking-tight">🎒 Bolsa para la imprenta</h2>
+          <p className="mt-2 text-sm">
+            No se ha podido cargar la lista. Seguramente falta pegar en Neon el SQL de la
+            actualización de la base de datos (tablas ShirtDtfRule, DesignDtfRule y
+            PrintBagCheck).
+          </p>
+        </Card>
+      )}
     </div>
   );
 }
