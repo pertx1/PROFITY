@@ -18,8 +18,13 @@ const DEFAULT_MODELS = [
   ...ALL_DTF_DESIGNS,
 ];
 
-export default async function PedidosPage() {
+export default async function PedidosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { userId } = await requireUser();
+  const { editar } = await searchParams;
 
   const [orders, modelRows, colorRows, sizeRows] = await Promise.all([
     prisma.order.findMany({ where: { userId }, orderBy: { date: "desc" } }),
@@ -58,7 +63,13 @@ export default async function PedidosPage() {
           Todo lo que vendes, con su estado.
         </p>
       </div>
-      <OrdersView orders={orders} models={models} colors={colors} sizes={sizes} />
+      <OrdersView
+        orders={orders}
+        models={models}
+        colors={colors}
+        sizes={sizes}
+        initialEditId={typeof editar === "string" ? editar : undefined}
+      />
     </div>
   );
 }

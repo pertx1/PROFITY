@@ -8,15 +8,18 @@ import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { TrendAreaChart } from "@/components/charts/TrendAreaChart";
 import { IconScale, IconTrendDown, IconTrendUp } from "@/components/nav/icons";
 import { formatCurrency, formatDate, formatOrderRef } from "@/lib/format";
+import { getPrintBag } from "@/lib/print-bag-server";
+import { PrintBagSection } from "@/components/print-bag/PrintBagSection";
 
 export const metadata: Metadata = { title: "Beneficio · PROFITY" };
 
 export default async function DashboardPage() {
   const { userId } = await requireUser();
-  const [summary, series, recent] = await Promise.all([
+  const [summary, series, recent, bag] = await Promise.all([
     getFinancialSummary(userId),
     getMonthlySeries(userId),
     getRecentActivity(userId),
+    getPrintBag(userId),
   ]);
 
   return (
@@ -132,6 +135,13 @@ export default async function DashboardPage() {
           </ul>
         </Card>
       </div>
+
+      <PrintBagSection
+        pendingOrders={bag.pendingOrders}
+        shirts={bag.shirts}
+        dtfs={bag.dtfs}
+        warnings={bag.warnings}
+      />
     </div>
   );
 }

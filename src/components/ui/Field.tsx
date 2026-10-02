@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import type { ComponentProps, ReactNode, SelectHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
 const controlClasses =
@@ -21,7 +21,7 @@ export function Label({
 export function Input({
   className,
   ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
+}: ComponentProps<"input">) {
   return <input className={cn(controlClasses, className)} {...props} />;
 }
 

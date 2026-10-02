@@ -24,6 +24,52 @@ model User {
   dtfStocks    DtfStock[]
   vintedItems  VintedItem[]
   invoices     Invoice[]
+  shirtDtfRules  ShirtDtfRule[]
+  designDtfRules DesignDtfRule[]
+  printBagChecks PrintBagCheck[]
+}
+
+// Regla general "color de camiseta → color del DTF" para colores distintos
+// de blanco/negro. shirtColorKey es el color normalizado (sin acentos, en
+// minúsculas) para poder casar con lo escrito en los pedidos.
+model ShirtDtfRule {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shirtColor    String
+  shirtColorKey String
+  dtfColor      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, shirtColorKey])
+}
+
+// DTF especial de un diseño (p. ej. a todo color): tiene prioridad sobre la
+// regla por color de camiseta.
+model DesignDtfRule {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  design    String
+  dtfColor  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, design])
+}
+
+// Línea marcada en la "Bolsa para la imprenta". Se guarda la cantidad que
+// tenía al marcarla para detectar si ha cambiado después.
+model PrintBagCheck {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  quantity  Int
+  checkedAt DateTime @default(now())
+
+  @@unique([userId, key])
 }
 
 model Invoice {

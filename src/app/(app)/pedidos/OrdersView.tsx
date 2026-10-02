@@ -72,13 +72,17 @@ export function OrdersView({
   models,
   colors,
   sizes,
+  initialEditId,
 }: {
   orders: Order[];
   models: string[];
   colors: string[];
   sizes: string[];
+  initialEditId?: string;
 }) {
-  const [editing, setEditing] = useState<Order | null>(null);
+  const [editing, setEditing] = useState<Order | null>(
+    () => orders.find((o) => o.id === initialEditId) ?? null,
+  );
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "TODOS">(
     "TODOS",
   );
