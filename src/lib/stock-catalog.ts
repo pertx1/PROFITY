@@ -22,7 +22,7 @@ export function garmentLabel(model: TshirtModel) {
 export type DtfVariant = "UNICO" | "BLANCO" | "NEGRO";
 
 // Diseños DTF que no dependen del color de camiseta (una sola variante).
-export const STANDALONE_DTF_DESIGNS = ["BA Azul", "BA blanco", "BA amarillo", "BA negro"];
+export const STANDALONE_DTF_DESIGNS = ["BA Azul", "BA blanco", "BA amarillo", "BA negro", "Eguzkilore"];
 
 // Diseños DTF que existen en blanco (para camiseta negra) y negro (para camiseta blanca).
 export const PAIRED_DTF_DESIGNS = [
@@ -31,7 +31,6 @@ export const PAIRED_DTF_DESIGNS = [
   "Flysch",
   "Ujue",
   "Haizearen orrazia",
-  "Eguzkilore",
 ];
 
 export const ALL_DTF_DESIGNS = [...STANDALONE_DTF_DESIGNS, ...PAIRED_DTF_DESIGNS];

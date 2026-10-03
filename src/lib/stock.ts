@@ -12,6 +12,14 @@ import {
   type TshirtModel,
 } from "@/lib/stock-catalog";
 
+// Solo las filas que siguen en el catálogo: si un diseño cambia de tener
+// versión blanco/negro a ser único (o al revés), las filas viejas se ignoran.
+function isCatalogDtf(row: { name: string; variant: string }) {
+  return row.variant === "UNICO"
+    ? STANDALONE_DTF_DESIGNS.includes(row.name)
+    : PAIRED_DTF_DESIGNS.includes(row.name);
+}
+
 /** Crea (si no existen) todas las filas de stock posibles para el usuario, en 0. */
 export async function ensureStockRows(userId: string) {
   const tshirtRows = TSHIRT_MODELS.flatMap((model) =>
@@ -98,7 +106,9 @@ export async function getStockOverview(userId: string) {
         TSHIRT_MODELS.indexOf(a.model as TshirtModel) - TSHIRT_MODELS.indexOf(b.model as TshirtModel) ||
         sizeRank(a.size) - sizeRank(b.size),
     );
-  const dtfStocks = dtfRows.map((s) => ({
+  const dtfStocks = dtfRows
+    .filter(isCatalogDtf)
+    .map((s) => ({
     ...s,
     quantity: s.quantity - (dtfDemand.get(`${s.name}_${s.variant}`) ?? 0),
   }));

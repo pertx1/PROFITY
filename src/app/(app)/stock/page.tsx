@@ -116,11 +116,11 @@ export default async function StockPage() {
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-border bg-background p-3 text-center">
-                <p className="text-xs font-medium text-secondary">BA (4 diseños)</p>
+                <p className="text-xs font-medium text-secondary">Únicos ({STANDALONE_DTF_DESIGNS.length} diseños)</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums">{standaloneTotal}</p>
               </div>
               <div className="rounded-xl border border-border bg-background p-3 text-center">
-                <p className="text-xs font-medium text-secondary">Emparejados (5 diseños)</p>
+                <p className="text-xs font-medium text-secondary">Emparejados ({PAIRED_DTF_DESIGNS.length} diseños)</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums">{pairedTotal}</p>
               </div>
             </div>
