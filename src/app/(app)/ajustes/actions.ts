@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { colorKey } from "@/lib/print-bag";
 import { ALL_DTF_DESIGNS } from "@/lib/stock-catalog";
+import { hashAntolaToken, newAntolaToken } from "@/lib/antola";
 
 export type RuleFormState = { error?: string; ok?: number };
 
@@ -85,4 +86,27 @@ export async function deleteDesignRuleAction(formData: FormData) {
   if (!id) return;
   await prisma.designDtfRule.deleteMany({ where: { id, userId } });
   revalidateAfterChange();
+}
+
+// ── Conectar con Antola ──
+
+export type AntolaTokenState = { token?: string; error?: string };
+
+/** Genera una clave nueva para Antola (la anterior deja de funcionar). Se muestra una sola vez. */
+export async function createAntolaTokenAction(): Promise<AntolaTokenState> {
+  const { userId } = await requireUser();
+  const token = newAntolaToken();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { antolaTokenHash: hashAntolaToken(token), antolaTokenCreatedAt: new Date() },
+  });
+  revalidatePath("/ajustes");
+  return { token };
+}
+
+/** Desconecta Antola: la clave deja de funcionar. */
+export async function revokeAntolaTokenAction() {
+  const { userId } = await requireUser();
+  await prisma.user.update({ where: { id: userId }, data: { antolaTokenHash: null, antolaTokenCreatedAt: null } });
+  revalidatePath("/ajustes");
 }

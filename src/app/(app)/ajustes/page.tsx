@@ -5,15 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { getPrintBag } from "@/lib/print-bag-server";
 import { ALL_DTF_DESIGNS } from "@/lib/stock-catalog";
 import { AjustesView } from "./AjustesView";
+import { AntolaCard } from "./AntolaCard";
 
 export const metadata: Metadata = { title: "Ajustes · PROFITY" };
 
 export default async function AjustesPage() {
   const { userId } = await requireUser();
-  const [shirtRules, designRules, bag] = await Promise.all([
+  const [shirtRules, designRules, bag, me] = await Promise.all([
     prisma.shirtDtfRule.findMany({ where: { userId }, orderBy: { shirtColor: "asc" } }),
     prisma.designDtfRule.findMany({ where: { userId }, orderBy: { design: "asc" } }),
     getPrintBag(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { antolaTokenCreatedAt: true } }),
   ]);
 
   return (
@@ -33,6 +35,7 @@ export default async function AjustesPage() {
         colorsWithoutRule={bag.colorsWithoutRule}
         designs={ALL_DTF_DESIGNS}
       />
+      <AntolaCard connectedAt={me?.antolaTokenCreatedAt?.toISOString() ?? null} />
     </div>
   );
 }

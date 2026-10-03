@@ -96,8 +96,6 @@ Copia `.env.example` a `.env` y ajusta:
 - `DATABASE_URL`: cadena de conexión Postgres (Neon, Supabase, o local).
 - `AUTH_SECRET`: secreto para firmar las sesiones. Genera uno propio con
   `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
-- `ANTOLA_TOKEN` y `ANTOLA_PROFITY_EMAIL` (opcionales): para que Antola cree tareas de
-  stock (ver «Conectar con Antola»).
 
 ## Stack técnico
 
@@ -107,16 +105,15 @@ JWT firmado (`jose`) en cookie httpOnly + Recharts para los gráficos.
 
 ## Conectar con Antola (tareas de stock)
 
-[Antola](https://github.com/pertx1/BATU) puede crear una tarea por cada artículo que haya
-que pedir (lo mismo que la lista «Hay que pedir» de Stock: stock a 0 o menos, restando los
-pedidos pendientes). Antola lo consulta cada hora en `GET /api/antola/stock`, que solo
-responde con la clave correcta y solo con los datos de una cuenta.
+Cada usuario puede conectar **su cuenta** con [Antola](https://github.com/pertx1/BATU) para que
+cada artículo que haya que pedir (lo mismo que la lista «Hay que pedir» de Stock: stock a 0 o
+menos, restando los pedidos pendientes) le aparezca allí como una tarea.
 
-En el proyecto de Profity en Vercel añade:
+1. En **Ajustes → Conectar con Antola**, pulsa «Generar clave para Antola» y cópiala (solo se
+   muestra una vez).
+2. En Antola → Ajustes → Profity, pégala y pulsa «Conectar con Profity».
 
-- `ANTOLA_TOKEN`: una clave larga (la misma que `PROFITY_TOKEN` en Antola). Genérala con
-  `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`.
-- `ANTOLA_PROFITY_EMAIL`: el email de tu cuenta de Profity.
-
-Sin esas variables la ruta responde 404 y no expone nada. El resto de la configuración
-está en el README de Antola («Conectar con Profity»).
+Antola consulta cada hora `GET /api/antola/stock` con esa clave
+(`Authorization: Bearer …`) y solo recibe los datos de esa cuenta. Profity guarda únicamente
+el hash (SHA-256) de la clave; «Generar clave nueva» invalida la anterior y «Desconectar» la
+borra. No hace falta ninguna variable de entorno en Profity.
