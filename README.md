@@ -96,9 +96,27 @@ Copia `.env.example` a `.env` y ajusta:
 - `DATABASE_URL`: cadena de conexión Postgres (Neon, Supabase, o local).
 - `AUTH_SECRET`: secreto para firmar las sesiones. Genera uno propio con
   `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+- `ANTOLA_TOKEN` y `ANTOLA_PROFITY_EMAIL` (opcionales): para que Antola cree tareas de
+  stock (ver «Conectar con Antola»).
 
 ## Stack técnico
 
 Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + Prisma 7 +
 Postgres (adapter `@prisma/adapter-pg`, pensado para Neon) + sesiones con
 JWT firmado (`jose`) en cookie httpOnly + Recharts para los gráficos.
+
+## Conectar con Antola (tareas de stock)
+
+[Antola](https://github.com/pertx1/BATU) puede crear una tarea por cada artículo que haya
+que pedir (lo mismo que la lista «Hay que pedir» de Stock: stock a 0 o menos, restando los
+pedidos pendientes). Antola lo consulta cada hora en `GET /api/antola/stock`, que solo
+responde con la clave correcta y solo con los datos de una cuenta.
+
+En el proyecto de Profity en Vercel añade:
+
+- `ANTOLA_TOKEN`: una clave larga (la misma que `PROFITY_TOKEN` en Antola). Genérala con
+  `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`.
+- `ANTOLA_PROFITY_EMAIL`: el email de tu cuenta de Profity.
+
+Sin esas variables la ruta responde 404 y no expone nada. El resto de la configuración
+está en el README de Antola («Conectar con Profity»).
