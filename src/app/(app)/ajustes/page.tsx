@@ -26,16 +26,16 @@ export default async function AjustesPage() {
         </Link>
         <h1 className="mt-2 text-[34px] font-bold leading-[41px] tracking-tight">Ajustes</h1>
         <p className="mt-1 text-sm text-secondary">
-          Qué DTF llevar a la imprenta según el color de la camiseta.
+          Qué DTF llevar a la imprenta según el color de la camiseta y la conexión con Antola.
         </p>
       </div>
+      <AntolaCard connectedAt={me?.antolaTokenCreatedAt?.toISOString() ?? null} />
       <AjustesView
         shirtRules={shirtRules.map(({ id, shirtColor, dtfColor }) => ({ id, shirtColor, dtfColor }))}
         designRules={designRules.map(({ id, design, dtfColor }) => ({ id, design, dtfColor }))}
         colorsWithoutRule={bag.colorsWithoutRule}
         designs={ALL_DTF_DESIGNS}
       />
-      <AntolaCard connectedAt={me?.antolaTokenCreatedAt?.toISOString() ?? null} />
     </div>
   );
 }
